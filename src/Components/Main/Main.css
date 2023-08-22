@@ -1,25 +1,41 @@
-.background{
-    background-color: aqua;
-    display: flex;
-    flex-direction: column;
+.background {
+  background-color: aqua;
+  display: flex;
+  flex-direction: column;
 }
-.messages{
-    height: 80vh;
+.message_background {
+  height: 80vh;
+  /* background-color: yellow; */
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+  justify-content: end;
 }
-.inputfield{
-    display: flex;
-    justify-content: space-evenly;
+.Message {
+  display: flex;
+  padding: 10px;
+  font-size: 16px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: auto;
+  max-width: 80%; /* Set a maximum width to prevent extreme expansion */
 }
-.inputbox{
-    display: flex;
-    width: 80%;
-    border-radius: 10px;
-    padding: 10px;
-    padding-right: 10px;
+.inputfield {
+  display: flex;
+  justify-content: space-evenly;
 }
-.sendButton{
-    width: 10%;
-    padding: 10px;
-    border-radius: 15px;
+.inputbox {
+  display: flex;
+  width: 80%;
+  border-radius: 10px;
+  padding: 10px;
+  padding-right: 10px;
 }
-
+.sendButton {
+  width: 10%;
+  padding: 10px;
+  border-radius: 15px;
+}
