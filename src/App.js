@@ -1,16 +1,16 @@
-import './App.css';
-import Main from './Components/Main/Main';
-import TopNavBar from './Components/TopnavBar/TopNavBar';
-
+import "./Styles/App.css";
+import Main from "./Components/Main/Main";
+import LoginPage from "./Components/LoginPage/LoginPage";
+import { BrowserRouter, Route, BrowserRouter as Router, Routes } from "react-router-dom";
 
 function App() {
   return (
-    <div className="App">
-      <TopNavBar/>
-      <div className="Main">
-        <Main />
-      </div>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={ <LoginPage/> }/>
+        <Route path="/Home" element={ <Main/> }/>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
