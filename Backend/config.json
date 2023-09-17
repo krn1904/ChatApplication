@@ -1,0 +1,3 @@
+{
+ "MongoDb_URL" : "mongodb+srv://admin:admin@chat-app.quig9nl.mongodb.net/?retryWrites=true&w=majority" 
+}
