@@ -1,11 +1,8 @@
-.App {
+.join_room{
   display: flex;
   flex-direction: column;
-  height: 100vh; 
-}
-.Main {
-  flex: 1; /* Take up remaining space */
-  overflow: auto; /* Add scrollbar if content exceeds the height */
-  padding: 20px;
-  background-color: aqua;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  opacity: 999;
 }

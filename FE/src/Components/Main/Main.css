@@ -1,18 +1,18 @@
-.background {
+/* .background {
   background-color: aqua;
   display: flex;
   flex-direction: column;
 }
 .message_background {
   height: 80vh;
-  /* background-color: yellow; */
   display: flex;
   flex-direction: column;
-  align-items: end;
-  justify-content: end;
+  align-items: end;  this line was commwnted
+  justify-content: start;
 }
-.Message {
+.Message .message-content{
   display: flex;
+  flex-direction: column;
   padding: 10px;
   font-size: 16px;
   background-color: white;
@@ -21,8 +21,11 @@
   margin: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   width: auto;
-  max-width: 80%; /* Set a maximum width to prevent extreme expansion */
+  max-width: 80%; 
+  comment
+  Set a maximum width to prevent extreme expansion 
 }
+
 .inputfield {
   display: flex;
   justify-content: space-evenly;
@@ -38,4 +41,75 @@
   width: 10%;
   padding: 10px;
   border-radius: 15px;
+} */
+
+.background {
+  background-color: aqua;
+  display: flex;
+  flex-direction: column;
+  height: 90vh;
+}
+
+.message_background {
+  flex: 1;
+  overflow-y: auto; /* Use auto to show the scrollbar only when needed */
+  display: flex;
+  flex-direction: column; /* Reverse the message order */
+  justify-content: flex-end;
+  padding: 10px;
+}
+
+.Message {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  margin: 10px;
+}
+
+#You {
+  justify-content: flex-end;
+  align-items: flex-end;
+}
+
+.Message .message-content {
+  padding: 10px;
+  font-size: 16px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-width: 80%;
+  word-wrap: break-word;
+}
+
+.message-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 5px;
+  color: #777;
+}
+
+.inputfield {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: white;
+}
+
+.inputbox {
+  flex: 1;
+  border-radius: 10px;
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+.sendButton {
+  padding: 10px;
+  border-radius: 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
 }
