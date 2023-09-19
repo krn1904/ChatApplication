@@ -3,26 +3,26 @@
   display: flex;
   flex-direction: column;
 }
-.message_background {
-  height: 80vh;
-  /* background-color: yellow; */
+
+
+.message_background{
   display: flex;
   flex-direction: column;
-  align-items: end;
   justify-content: end;
+  align-items: end;
+  height: 85vh;
 }
-.Message {
+
+.message_box{
   display: flex;
-  padding: 10px;
-  font-size: 16px;
-  background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  margin: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  width: auto;
-  max-width: 80%; /* Set a maximum width to prevent extreme expansion */
+  /* background-color: wheat; */
 }
+
+.message{
+  border-radius: 1opx;
+  background-color: red;
+}
+
 .inputfield {
   display: flex;
   justify-content: space-evenly;

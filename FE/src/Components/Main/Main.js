@@ -32,9 +32,9 @@ function Main({ socket, username, room_id }) {
       // This logic is been implemented because the message is stored twice in the chat array.. If you do not find the solution other than this do not change.
       // Kindly update below code to check above comment
       //  setChat((prevChat)=> [...prevChat, data])
-      
+
       // Woring code that remove duplicates
-      
+
       setChat((prevChat) => {
         // Check if the message already exists in chat
         const messageExists = prevChat.some(
@@ -56,9 +56,17 @@ function Main({ socket, username, room_id }) {
       <TopNavBar />
       <div className="background">
         <div className="message_background">
-          {chat.map((data, index) => (
-            <div className="Message" key={index}>
-              {data.message}
+        {chat.map((data, index) => (
+            <div className="message_box" style={{alignItems : username == data.author ? 'end':'start'}} >
+              <div className="message_detail" >
+              <div className="Message" key={index}>
+                {data.message}
+              </div>
+              {/* <div className="message_meta-data">
+                <div>{data.author}</div>
+                <div>{data.timestamp}</div>
+              </div> */}
+            </div>
             </div>
           ))}
         </div>
