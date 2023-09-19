@@ -13,7 +13,7 @@ function Main({ socket, username, room_id }) {
 
   // Event handler for submitting the message
   const handleSubmit = () => {
-    // setSubmittedMessage(messageInput);
+
     const message = {
       author: username,
       message: messageInput,
@@ -21,6 +21,7 @@ function Main({ socket, username, room_id }) {
       timestamp: new Date().getHours() + new Date().getMinutes(),
     };
     socket.emit("send_message", message);
+    setChat((chat)=>[...chat,message])
     setMessageInput("");
   };
 
