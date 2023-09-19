@@ -1,6 +1,6 @@
 import "./Styles/App.css";
 import Main from "./Components/Main/Main";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { io } from "socket.io-client";
 const Config = require('./config.json');
    

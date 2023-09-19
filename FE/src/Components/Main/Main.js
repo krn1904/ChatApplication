@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import "./Main.css";
-import io, { Socket } from "socket.io-client";
 import TopNavBar from "../TopnavBar/TopNavBar";
 
 function Main({ socket, username, room_id }) {
