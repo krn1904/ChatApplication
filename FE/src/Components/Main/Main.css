@@ -1,14 +1,16 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Arial', sans-serif;
+  font-family: "Arial", sans-serif;
   overflow: hidden; /* Prevent body from scrolling */
 }
 
 .app {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 100px); /* Adjusted height to accommodate the top navbar */
+  height: calc(
+    100vh - 100px
+  ); /* Adjusted height to accommodate the top navbar */
   overflow-y: hidden; /* Hide overflow to prevent scrolling within the chat box */
 }
 
@@ -51,39 +53,20 @@ body {
   color: lightgray;
 }
 
-/* .message-box { */
-  /* flex: 1; */
-  /* overflow-y: auto; */
-  /* height: 95%;
-  padding: 10px 8px;
-  background-color: #f0f0f0;
-  display: flex; */
-  /* flex-direction: column; Change to column-reverse */
-  /* place-content: flex-end; */
-/* } */
-
-/* .message-box-container {
+.message-box-container {
   flex: 1;
   overflow-y: auto;
   height: 100%; /* Use 100% height to fill the available space */
-  /* place-content: flex-end; */
-/* } */ 
-  .message-box-container {
-    flex: 1;
-    overflow-y: auto;
-    height: 100%; /* Use 100% height to fill the available space */
-  }
-  
-  .message-box {
-    padding: 10px 8px;
-    background-color: #f0f0f0;
-    display: flex;
-    flex-direction: column; /* Keep the column direction */
-  }
-/* } */
-/* .message-box-container::-webkit-scrollbar {
-  display: none; /* For Chrome, Safari, and Opera */
-/* } */ 
+  display: flex;
+  flex-direction: column-reverse;
+  place-content: flex-start;
+}
+
+.message-box {
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column; /* Keep the column direction */
+}
 
 .sender-name {
   font-size: 9px;
@@ -115,8 +98,8 @@ body {
   align-self: flex-start;
 }
 .receiver {
-    justify-content: flex-end;
-    margin-left: 5px;
+  justify-content: flex-end;
+  margin-left: 5px;
 }
 
 .input-box {
