@@ -5,6 +5,7 @@ import TopNavBar from "../TopnavBar/TopNavBar";
 function Main({ socket, username, room_id }) {
   const [messageInput, setMessageInput] = useState("");
   const [chat, setChat] = useState([]);
+  const [inputValue, setInputValue] = useState("");
 
   // Event handler to update the message input
   const handleInputChange = (event) => {
@@ -13,16 +14,22 @@ function Main({ socket, username, room_id }) {
 
   // Event handler for submitting the message
   const handleSubmit = () => {
+    if (messageInput.trim() !== "") {
+      // setMessages([...messages, { text: inputValue, type: "sent" }]);
+      // setInputValue("");
 
-    const message = {
-      author: username,
-      message: messageInput,
-      room: room_id,
-      timestamp: new Date().getHours() + new Date().getMinutes(),
-    };
-    socket.emit("send_message", message);
-    setChat((chat)=>[...chat,message])
-    setMessageInput("");
+      const message = {
+        author: username,
+        message: messageInput,
+        room: room_id,
+        timestamp: new Date().getHours() + new Date().getMinutes(),
+      };
+      socket.emit("send_message", message);
+      setChat((chat) => [...chat, message]);
+      setMessageInput("");
+    }else{
+      console.log("object")
+    }
   };
 
   useEffect(() => {
@@ -54,34 +61,27 @@ function Main({ socket, username, room_id }) {
   return (
     <>
       <TopNavBar />
-      <div className="background">
-        <div className="message_background">
-        {chat.map((data, index) => (
-            <div className="message_box" style={{alignItems : username == data.author ? 'end':'start'}} >
-              <div className="message_detail" >
-              <div className="Message" key={index}>
-                {data.message}
-              </div>
-              {/* <div className="message_meta-data">
-                <div>{data.author}</div>
-                <div>{data.timestamp}</div>
-              </div> */}
-            </div>
+      <div className="app">
+        <div className="message-box-container">
+
+        <div className={`message-box `}>
+          {chat.map((message, index) => (
+            <div key={index} className={`${message.author == username ? 'sent' : 'receive'}`}>
+              <div className="message">{message.message}</div>
+              <div className={`sender-name ${message.author == username ? 'sender' : 'receiver'}`}>{message.author}</div>
             </div>
           ))}
         </div>
-        <div className="inputfield">
+        <div className="input-box">
           <input
-            className="inputbox"
             type="text"
-            placeholder="Please enter your text"
-            value={messageInput} // Bind input value to the messageInput state
+            placeholder="Type your message..."
+            value={messageInput}
             onChange={handleInputChange}
-          />
-          <button className="sendButton" onClick={handleSubmit}>
-            Submit
-          </button>
+            />
+          <button onClick={handleSubmit}>Send</button>
         </div>
+            </div>
       </div>
     </>
   );
