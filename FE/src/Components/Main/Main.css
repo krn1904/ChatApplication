@@ -12,6 +12,7 @@ body {
     100vh - 100px
   ); /* Adjusted height to accommodate the top navbar */
   overflow-y: hidden; /* Hide overflow to prevent scrolling within the chat box */
+  background: blanchedalmond;
 }
 
 .top-navbar {
@@ -106,10 +107,10 @@ body {
   display: flex;
   align-items: center;
   padding: 10px;
-  background-color: #fff;
   position: fixed;
   bottom: 0;
   width: 100%;
+  background: antiquewhite;
 }
 
 input {
