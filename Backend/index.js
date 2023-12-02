@@ -4,8 +4,7 @@ const mongoose = require('mongoose');
 const { Server } = require("socket.io"); 
 const cors = require('cors') // Import the cors middleware
 const { CreateUser, AllUsers } = require('./UserController/Users');
-const config = require('./config.json');
-const { log } = require('console');
+// const config = require('./config.json');
 
 const app = express();
 const httpServer = createServer(app);
@@ -56,7 +55,7 @@ app.get('/AllUsers',AllUsers)
 
 async function connect() {
   try {
-    await mongoose.connect(config.MongoDb_URL, {
+    await mongoose.connect(process.env.MongoDb_URL, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
