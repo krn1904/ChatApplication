@@ -2,10 +2,10 @@ import "./Styles/App.css";
 import Main from "./Components/Main/Main";
 import { useState } from "react";
 import { io } from "socket.io-client";
-const Config = require('./config.json');
+const config = require('./config.js');
    
 // Socket Connection
-const socket = io(Config.BaseURL + Config.port, { transports: ["websocket"] });
+const socket = io(config.BaseURL + config.port, { transports: ["websocket"] });
 
 function App() {
     const [username, setUsername] = useState("");
