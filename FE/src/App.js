@@ -6,6 +6,8 @@ const config = require('./config.js');
    
 // Socket Connection
 const socket = io(config.BaseURL + config.port, { transports: ["websocket"] });
+console.log(config.BaseURL);
+console.log(config.port);
 
 function App() {
     const [username, setUsername] = useState("");
