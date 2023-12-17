@@ -8,8 +8,11 @@ const config = require('./config.js');
 
 const app = express();
 const httpServer = createServer(app);
-const io = new Server(httpServer)
-const port = 3001;
+// const io = new Server(httpServer)
+const io = new Server(httpServer, {
+  transports: ['websocket'],
+});
+const port = 3002;
 
 
 app.use(cors()); // Use the cors middleware
