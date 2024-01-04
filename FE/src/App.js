@@ -2,21 +2,25 @@ import "./Styles/App.css";
 import Main from "./Components/Main/Main";
 import { useState } from "react";
 import { io } from "socket.io-client";
+import useWebSocket from 'react-use-websocket'
 const config = require('./config.js');
    
 // Socket Connection
 const socket = io(config.BaseURL + config.port, { transports: ["websocket"] });
-console.log(config.BaseURL);
-console.log(config.port);
-console.log("port ",process.env.port);
-
+// console.log(config.BaseURL);
+// console.log(config.port);
+// console.log("port ",process.env.port);
 
 
 function App() {
-    const [username, setUsername] = useState("");
-    const [room, setRoom] = useState("");
-    const [showChat, setShowChat] = useState(false);
-
+  const [username, setUsername] = useState("");
+  const [room, setRoom] = useState("");
+  const [showChat, setShowChat] = useState(false);
+  
+  // Use WebSocket
+  const { sendMessage: sendNewMessage } = useWebSocket("ws://192.168.1.11:8000", { onOpen: (e)=> {
+    console.log(`Client connected`,e)
+  },})
     const joinRoom = () => {
       if (username !== "" && room !== "") {
         socket.emit("join_room", room);
