@@ -18,7 +18,7 @@ function App() {
   const [showChat, setShowChat] = useState(false);
   
   // Use WebSocket
-  const { sendMessage: sendNewMessage } = useWebSocket("ws://192.168.1.11:8000", { onOpen: (e)=> {
+  const { sendMessage: sendNewMessage } = useWebSocket(config.BaseURL + config.port, { onOpen: (e)=> {
     console.log(`Client connected`,e)
   },})
     const joinRoom = () => {
