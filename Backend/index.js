@@ -6,11 +6,11 @@ const { handleMessage } = require('./Websocket/ws');
 // Code changed to websocket
 const app = express();
 
-const host = process.env.HOST || "192.168.1.3";
+const host = process.env.HOST || "192.168.1.9";
 const port = process.env.PORT || 8001;
 const server = http.createServer(app);
 const wss = new WebSocket.Server({port : 8002});
-let clients = [];
+// let clients = [];
 
 app.use(express.json()); // json body parser
 
@@ -18,16 +18,21 @@ wss.on("connection",(ws) => initConnection(ws))
 
 function initConnection (ws) {
   // NEW CODE
-  clients.push(ws);
-  // console.log("clients", clients)
+  // clients.push(ws);
+  let clients = wss.clients
   ws.on('message', async (data) => {
+    // wss.clients.forEach(function each(client) {
+    //   console.log("client", client)
+    //   if (client !== ws && client.readyState === WebSocket.OPEN) {
+    //     client.send("data");
+    //   }
+    // })
     try {
       let req = JSON.parse(data);
-      // console.log("req",JSON.parse(data))
-      // console.log("ws",ws)
-      console.log("outside ws",ws)
-      let res = await handleMessage(req, ws)
-      console.log("res",res)
+
+      // console.log("outside ws",ws)
+      let res = await handleMessage(req, clients, ws)
+      // console.log("res",res)
     // res.forEach(element => {
       // res[0].element.websocketConnection.send("data")
     // });

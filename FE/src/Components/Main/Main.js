@@ -19,12 +19,13 @@ function Main({ socket, username, room_id }) {
       // setInputValue("");
 
       const message = {
+        method: 'send-message',
         author: username,
         message: messageInput,
         room: room_id,
         timestamp: new Date().getHours() + new Date().getMinutes(),
       };
-      socket.emit("send_message", message);
+      socket.send(JSON.stringify(message));
       setChat((chat) => [...chat, message]);
       setMessageInput("");
     }else{
@@ -33,7 +34,24 @@ function Main({ socket, username, room_id }) {
   };
 
   useEffect(() => {
-    socket.on("recieve_message", (data) => {
+    socket.onmessage = (res) => {
+      // File: test.js
+      if(res){
+        let ParsedRes = JSON.parse(res.data);
+        setChat((prevChat) => {
+          // Check if the message already exists in chat
+          const messageExists = prevChat.some(
+            (chatMessage) => chatMessage.message === ParsedRes.message
+          );
+  
+          // If the message doesn't exist, add it to the chat state
+          if (!messageExists) {
+            return [...prevChat, ParsedRes];
+          }
+  
+          return prevChat; // Return the same state if the message exists
+        });
+      }
       // Check if the message already exists in chat
 
       // This logic is been implemented because the message is stored twice in the chat array.. If you do not find the solution other than this do not change.
@@ -42,21 +60,9 @@ function Main({ socket, username, room_id }) {
 
       // Woring code that remove duplicates
 
-      setChat((prevChat) => {
-        // Check if the message already exists in chat
-        const messageExists = prevChat.some(
-          (chatMessage) => chatMessage.message === data.message
-        );
-
-        // If the message doesn't exist, add it to the chat state
-        if (!messageExists) {
-          return [...prevChat, data];
-        }
-
-        return prevChat; // Return the same state if the message exists
-      });
-    });
-  }, [socket]);
+     
+    };
+  }, []);
 
   return (
     <>
@@ -66,6 +72,7 @@ function Main({ socket, username, room_id }) {
 
         <div className={`message-box `}>
           {chat.map((message, index) => (
+            console.log("message",message),
             <div key={index} className={`${message.author == username ? 'sent' : 'receive'}`}>
               <div className="message">{message.message}</div>
               <div className={`sender-name ${message.author == username ? 'sender' : 'receiver'}`}>{message.author}</div>
