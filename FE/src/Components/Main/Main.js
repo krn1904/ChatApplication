@@ -29,7 +29,8 @@ function Main({ socket, username, room_id }) {
       setChat((chat) => [...chat, message]);
       setMessageInput("");
     }else{
-      console.log("object")
+      console.log("Enter valid message");
+      alert("Enter valid Message! check Console")
     }
   };
 
@@ -62,6 +63,11 @@ function Main({ socket, username, room_id }) {
 
      
     };
+
+    socket.onclose = (res) => {
+      alert("Websocket connectino closed")
+      console.log("object")
+    }
   }, []);
 
   return (

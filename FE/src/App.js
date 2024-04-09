@@ -1,6 +1,6 @@
 import "./Styles/App.css";
 import Main from "./Components/Main/Main";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 // import useWebSocket from 'react-use-websocket'
 const config = require('./config.js');
    
@@ -9,17 +9,19 @@ function App() {
   const [username, setUsername] = useState("");
   const [room, setRoom] = useState("");
   const [showChat, setShowChat] = useState(false);
+  const [server, setWebsocketServer] = useState({});
   // My way
-  const server = new WebSocket("ws://192.168.1.9:8002")
-  server.onopen = function(e) {
-    console.log(`Client connected`,e)
-  }
+  // const server = new WebSocket("ws://192.168.1.9:8002")
+  // server.onopen = function(e) {
+  //   console.log(`Client connected`,e)
+  // }
     const joinRoom = () => {
       if (username !== "" && room !== "") {
         const initConnection = {
           method : 'joinRoom',
           user : username,
-          room : room
+          room : room,
+
         }
 
         server.send(JSON.stringify(initConnection));
@@ -32,6 +34,23 @@ function App() {
         //  server.send(message);
       }
     };
+
+    useEffect(() => {
+      // Create a new WebSocket connection
+      let ws = new WebSocket('ws://192.168.1.9:8002');
+      setWebsocketServer(ws);
+
+      // Event listener for handling errors
+      ws.addEventListener('error', (error) => {
+          console.error('WebSocket error:', error);
+      });
+
+      // Return a cleanup function to close the WebSocket connection when the component unmounts
+      return () => {
+          ws.close();
+          console.log('WebSocket connection closed');
+      };
+  }, []); // Empty dependency array ensures this effect runs only once
   
     return (
       <div className="App">
