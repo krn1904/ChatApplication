@@ -15,18 +15,27 @@ app.use(express.json()); // json body parser
 
 wss.on("connection",(ws) => initConnection(ws))
 
+let clients = [];
 function initConnection (ws) {
   // NEW CODE
-  let clients = wss.clients
+  clients = wss.clients
   ws.on('message', async (data) => {
     try {
       let req = JSON.parse(data);
+      // console.log("req",req)
+      // console.log("ws",ws)
       await handleMessage(req, clients, ws)
+      // ws.close()
 
     } catch (error) {
       console.error('Error parsing WebSocket message:', error);
     }
   })
+
+  ws.on('close', () => { 
+    console.log("connection closed");
+    clients = []
+});
 }
 
 server.listen(port, () => {
