@@ -39,6 +39,9 @@ function App() {
       // Create a new WebSocket connection
       console.log("port, url ", config.BaseURL,config.port)
       let ws = new WebSocket(config.BaseURL + config.port);
+      console.log("port:", process.env.port);
+console.log("BaseURL:", process.env.BaseURL);
+
       setWebsocketServer(ws);
 
       // Event listener for handling errors
