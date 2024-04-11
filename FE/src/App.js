@@ -37,7 +37,8 @@ function App() {
 
     useEffect(() => {
       // Create a new WebSocket connection
-      let ws = new WebSocket('ws://192.168.1.9:8002');
+      console.log("port, url ", config.BaseURL,config.port)
+      let ws = new WebSocket(config.BaseURL + config.port);
       setWebsocketServer(ws);
 
       // Event listener for handling errors
