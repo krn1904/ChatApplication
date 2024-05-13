@@ -6,11 +6,11 @@ const { handleMessage } = require('./Websocket/ws');
 // Code changed to websocket
 const app = express();
 
-const host = process.env.HOST || "13.228.225.19";
 const port = 8001
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ port: 8002 });
+const wss = new WebSocket.Server({server});
 
+// console.log("wss",wss);
 app.use(express.json()); // json body parser
 
 wss.on("connection",(ws) => initConnection(ws))
@@ -39,7 +39,6 @@ function initConnection (ws) {
 }
 
 server.listen(port, () => {
-  console.log(`Server running at http://${host}:${port}`);
-  // console.log(`Server running at http://${server.address().address}:${server.address().port}`);
+  console.log(`Server running at port ${port}`);
   console.log("HI")
 });
