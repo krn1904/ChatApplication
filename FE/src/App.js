@@ -38,12 +38,13 @@ function App() {
     useEffect(() => {
       // Create a new WebSocket connection
       console.log("port, url ", config.BaseURL,config.port)
-      let ws = new WebSocket(config.BaseURL + config.port);
-      console.log("port:", process.env.port);
-console.log("BaseURL:", process.env.BaseURL);
+      let ws = new WebSocket("wss://chatapp-backend-fa2x.onrender.com");
 
       setWebsocketServer(ws);
 
+      ws.addEventListener('open', () => {
+        console.log('WebSocket connection opened');
+      });
       // Event listener for handling errors
       ws.addEventListener('error', (error) => {
           console.error('WebSocket error:', error);
