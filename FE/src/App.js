@@ -1,7 +1,6 @@
 import "./Styles/App.css";
 import Main from "./Components/Main/Main";
 import { useEffect, useState } from "react";
-// import useWebSocket from 'react-use-websocket'
 const config = require('./config.js');
    
 function App() {
@@ -37,8 +36,7 @@ function App() {
 
     useEffect(() => {
       // Create a new WebSocket connection
-      console.log("port, url ", config.BaseURL,config.port)
-      let ws = new WebSocket("wss://chatapp-backend-fa2x.onrender.com");
+      let ws = new WebSocket( config.BaseURL);
 
       setWebsocketServer(ws);
 
