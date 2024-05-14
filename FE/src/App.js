@@ -9,23 +9,16 @@ function App() {
   const [room, setRoom] = useState("");
   const [showChat, setShowChat] = useState(false);
   const [server, setWebsocketServer] = useState({});
-  // My way
-  // const server = new WebSocket("ws://192.168.1.9:8002")
-  // server.onopen = function(e) {
-  //   console.log(`Client connected`,e)
-  // }
+
     const joinRoom = () => {
       if (username !== "" && room !== "") {
         const initConnection = {
           method : 'joinRoom',
           user : username,
           room : room,
-
         }
-
         server.send(JSON.stringify(initConnection));
         setShowChat(true);
-
         // new
         // const message = JSON.stringify({ event: 'join_room', data:  room  });
 
@@ -37,17 +30,14 @@ function App() {
     useEffect(() => {
       // Create a new WebSocket connection
       let ws = new WebSocket( config.BaseURL);
-
       setWebsocketServer(ws);
-
       ws.addEventListener('open', () => {
-        console.log('WebSocket connection opened');
+        console.log('WebSocket connection established');
       });
       // Event listener for handling errors
       ws.addEventListener('error', (error) => {
           console.error('WebSocket error:', error);
       });
-
       // Return a cleanup function to close the WebSocket connection when the component unmounts
       return () => {
           ws.close();

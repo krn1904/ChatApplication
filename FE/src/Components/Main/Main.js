@@ -5,7 +5,7 @@ import TopNavBar from "../TopnavBar/TopNavBar";
 function Main({ socket, username, room_id }) {
   const [messageInput, setMessageInput] = useState("");
   const [chat, setChat] = useState([]);
-  const [inputValue, setInputValue] = useState("");
+  // const [inputValue, setInputValue] = useState("");
 
   // Event handler to update the message input
   const handleInputChange = (event) => {
@@ -66,9 +66,14 @@ function Main({ socket, username, room_id }) {
 
     socket.onclose = (res) => {
       alert("Websocket connectino closed")
-      console.log("object")
     }
-  }, []);
+  }); //there was error in console of empty dependenci [] so removed it.
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      handleSubmit();
+    }
+  };
 
   return (
     <>
@@ -78,10 +83,9 @@ function Main({ socket, username, room_id }) {
 
         <div className={`message-box `}>
           {chat.map((message, index) => (
-            console.log("message",message),
-            <div key={index} className={`${message.author == username ? 'sent' : 'receive'}`}>
+            <div key={index} className={`${message.author === username ? 'sent' : 'receive'}`}>
               <div className="message">{message.message}</div>
-              <div className={`sender-name ${message.author == username ? 'sender' : 'receiver'}`}>{message.author}</div>
+              <div className={`sender-name ${message.author === username ? 'sender' : 'receiver'}`}>{message.author}</div>
             </div>
           ))}
         </div>
@@ -91,6 +95,7 @@ function Main({ socket, username, room_id }) {
             placeholder="Type your message..."
             value={messageInput}
             onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
             />
           <button onClick={handleSubmit}>Send</button>
         </div>
