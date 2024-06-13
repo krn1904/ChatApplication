@@ -1,11 +1,17 @@
 import React, { useEffect, useState } from "react";
 import "./Main.css";
 import TopNavBar from "../TopnavBar/TopNavBar";
+import { useLocation } from "react-router-dom";
+import { useWebSocket } from "../Hooks/useWebsocket.jsx";
 
-function Main({ socket, username, room_id }) {
+function Main() {
   const [messageInput, setMessageInput] = useState("");
-  const [chat, setChat] = useState([]);
+  const [chat, setChat] = useState([]); 
   // const [inputValue, setInputValue] = useState("");
+
+  const locationData = useLocation();
+  const { username, room_id } = locationData.state
+  const socket = useWebSocket();
 
   // Event handler to update the message input
   const handleInputChange = (event) => {
@@ -35,10 +41,9 @@ function Main({ socket, username, room_id }) {
   };
 
   useEffect(() => {
-    socket.onmessage = (res) => {
-      // File: test.js
-      if(res){
-        let ParsedRes = JSON.parse(res.data);
+    if (socket) {
+      const handleMessage = (event) => {
+        const ParsedRes = JSON.parse(event.data);
         setChat((prevChat) => {
           // Check if the message already exists in chat
           const messageExists = prevChat.some(
@@ -50,9 +55,6 @@ function Main({ socket, username, room_id }) {
             return [...prevChat, ParsedRes];
           }
   
-          return prevChat; // Return the same state if the message exists
-        });
-      }
       // Check if the message already exists in chat
 
       // This logic is been implemented because the message is stored twice in the chat array.. If you do not find the solution other than this do not change.
@@ -60,14 +62,17 @@ function Main({ socket, username, room_id }) {
       //  setChat((prevChat)=> [...prevChat, data])
 
       // Woring code that remove duplicates
+      return prevChat; // Return the same state if the message exists
+    });
+      };
 
-     
-    };
+      socket.onmessage = handleMessage;
 
-    socket.onclose = (res) => {
-      alert("Websocket connectino closed")
+      return () => {
+        socket.onmessage = null; // Cleanup
+      };
     }
-  }); //there was error in console of empty dependenci [] so removed it.
+  }, [socket]);//there was error in console of empty dependenci [] so removed it.
 
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {

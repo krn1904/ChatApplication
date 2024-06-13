@@ -1,75 +1,20 @@
 import "./Styles/App.css";
-import Main from "./Components/Main/Main";
-import { useEffect, useState } from "react";
-const config = require('./config.js');
-   
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Main from "./Components/Main/Main.js";
+import Login from "./Components/LoginPage/LoginPage.jsx";
+import { WebSocketProvider } from "./Components/Hooks/useWebsocket.jsx";
+
 function App() {
-
-  const [username, setUsername] = useState("");
-  const [room, setRoom] = useState("");
-  const [showChat, setShowChat] = useState(false);
-  const [server, setWebsocketServer] = useState({});
-
-    const joinRoom = () => {
-      if (username !== "" && room !== "") {
-        const initConnection = {
-          method : 'joinRoom',
-          user : username,
-          room : room,
-        }
-        server.send(JSON.stringify(initConnection));
-        setShowChat(true);
-        // new
-        // const message = JSON.stringify({ event: 'join_room', data:  room  });
-
-        // Send the message to the WebSocket server
-        //  server.send(message);
-      }
-    };
-
-    useEffect(() => {
-      // Create a new WebSocket connection
-      let ws = new WebSocket( config.BaseURL);
-      setWebsocketServer(ws);
-      ws.addEventListener('open', () => {
-        console.log('WebSocket connection established');
-      });
-      // Event listener for handling errors
-      ws.addEventListener('error', (error) => {
-          console.error('WebSocket error:', error);
-      });
-      // Return a cleanup function to close the WebSocket connection when the component unmounts
-      return () => {
-          ws.close();
-          console.log('WebSocket connection closed');
-      };
-  }, []); // Empty dependency array ensures this effect runs only once
-  
-    return (
-      <div className="App">
-        {!showChat ? (
-          <div className="ChatContainer">
-            <h3>Welcome to the Chat App</h3>
-            <div className="InputContainer">
-              <input
-                type="text"
-                placeholder="Enter your username"
-                onChange={(event) => setUsername(event.target.value)}
-              />
-              <input
-                type="text"
-                placeholder="Enter Room ID"
-                onChange={(event) => setRoom(event.target.value)}
-              />
-              <button onClick={joinRoom}>Join Room</button>
-            </div>
-          </div>
-        ) : (
-          <Main socket={server} username={username} room_id={room} />
-        )}
-      </div>
+  return (
+    <Router>
+      <WebSocketProvider>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Main />} />
+        </Routes>
+      </WebSocketProvider>
+    </Router>
   );
 }
 
 export default App;
-
