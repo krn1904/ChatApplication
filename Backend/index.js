@@ -1,7 +1,10 @@
 const express = require('express');
 const  http  = require("http");
 const { WebSocket } = require("ws");
-const { handleMessage } = require('./Websocket/ws');
+const { handleMessage } = require("./Websocket/ws.js");
+
+const { connect } = require('./Database/db.js');
+// const { error } = require('console');
 
 // Code changed to websocket
 const app = express();
@@ -12,6 +15,13 @@ const wss = new WebSocket.Server({server});
 
 app.use(express.json()); // json body parser
 
+let db;
+connect().then(database => {
+  db = database;
+}).catch(error => 
+    console.log(error)
+);
+
 wss.on("connection",(ws) => initConnection(ws))
 
 let clients = [];
@@ -21,7 +31,7 @@ const initConnection = (ws) => {
   ws.on('message', async (data) => {
     try {
       let req = JSON.parse(data);
-      await handleMessage(req, clients, ws)
+      await handleMessage(req, clients, ws, db)
     } catch (error) {
       console.error('Error parsing WebSocket message:', error);
     }

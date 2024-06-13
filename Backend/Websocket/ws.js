@@ -5,13 +5,13 @@ const api = new Map();
 const rooms = new Map();
 const roomMessages = new Map();
 
- const handleMessage = async (req, clients, ws) => {
+ const handleMessage = async (req, clients, ws, db) => {
 
     if (api.has(req.method)){
 
         let requectMethod = api.get(req.method);
 
-        let res = await requectMethod(req, clients, ws)
+        let res = await requectMethod(req, clients, ws, db)
 
         return res
     }
@@ -44,7 +44,7 @@ api.set("send-message", async (req, clients, ws) => {
     // return room_messageList
 })
 
-api.set("joinRoom", async (req, clients, websocketConnection) => {
+api.set("joinRoom", async (req, clients, websocketConnection, db) => {
     let roomId = req.room;
     let userId = req.user;
 
@@ -62,7 +62,36 @@ api.set("joinRoom", async (req, clients, websocketConnection) => {
     //   rooms.forEach((users, roomId) => {
     //     console.log(`Room ${roomId}: ${Array.from(users).join(', ')}`);
     //   });
+
+    // Add the user to the room
+    rooms.get(roomId).add({ userId, websocketConnectionObj });
+
+    // Insert or update user in the database
+    const usersCollection = db.collection('users');
+    const user = {
+        userId,
+        rooms: [roomId] // Initial room assignment
+    };
+
+     // Step 1: Update the userName
+     await usersCollection.updateOne(
+        { userId },
+        {
+            $set: { userId }
+        },
+        { upsert: true }
+    );
+
+    // Step 2: Update the rooms array
+    await usersCollection.updateOne(
+        { userId },
+        {
+            $addToSet: { rooms: roomId }
+        }
+    );
+    console.log(`User ${userId} joined room ${roomId}`);
 })
+
 
 api.set("get-chats", async (req) => {
     let chats = req.params.withUser;
