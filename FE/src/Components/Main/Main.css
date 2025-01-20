@@ -8,9 +8,11 @@ body {
 .app {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  background: blanchedalmond;
+  padding-top: 60px; /* Height of the fixed navbar */
+  height: calc(100vh - 60px);
+  background: #e5ded8;
   position: relative;
+  overflow: hidden;
 }
 
 .top-navbar {
@@ -55,10 +57,10 @@ body {
 .message-box-container {
   flex: 1;
   overflow-y: auto;
-  height: calc(100vh - 180px); /* Adjust height to account for navbar and input box */
+  height: calc(100vh - 120px);
   display: flex;
   flex-direction: column;
-  padding-bottom: 70px; /* Add padding to prevent messages from being hidden behind input box */
+  padding-bottom: 70px;
 }
 
 .message-box {
@@ -66,129 +68,137 @@ body {
   display: flex;
   flex-direction: column;
   min-height: min-content;
+  width: 100%;
+  margin: 0 auto;
 }
 
-.sender-name {
+.message-bubble {
+  display: flex;
+  margin: 4px 0;
+  max-width: 65%;
+  animation: fadeIn 0.3s ease;
+  position: relative;
+  clear: both;
+  width: fit-content;
+}
+
+.message-bubble.sent {
+  margin-left: auto;
+}
+
+.message-bubble.received {
+  margin-right: auto;
+}
+
+.message-content {
+  position: relative;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.4;
+  min-width: 120px;
+}
+
+.sent .message-content {
+  background-color: #dcf8c6;
+  margin-left: auto;
+  color: #000;
+}
+
+.received .message-content {
+  background-color: #ffffff;
+  color: #000;
+}
+
+.message-author {
+  display: block;
   font-size: 12px;
-  color: #666;
-  margin-top: 4px;
+  font-weight: 500;
+  color: #1f7aec;
+  margin-bottom: 2px;
 }
 
-.message {
-  padding: 10px 15px;
-  border-radius: 15px;
+.message-text {
   word-wrap: break-word;
-  max-width: 100%;
+  white-space: pre-wrap;
+  margin-bottom: 4px;
 }
 
-.sent {
-  align-self: flex-end;
-}
-
-.sent .message {
-  background-color: #4caf50;
-  color: white;
-}
-
-.receive {
-  align-self: flex-start;
-}
-
-.receive .message {
-  background-color: #e9ecef;
-  color: #333;
-}
-
-.sender {
-  text-align: right;
-}
-
-.receiver {
-  text-align: left;
+.message-time {
+  display: inline-block;
+  font-size: 11px;
+  color: #667781;
+  float: right;
+  margin-left: 8px;
 }
 
 .input-box {
-  display: flex;
-  align-items: center;
-  padding: 10px 15px;
-  background: antiquewhite;
   position: fixed;
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;  /* Set container to 80% of viewport width */
+  left: 0;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background: #f0f0f0;
   gap: 8px;
-  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+  border-top: 1px solid #ddd;
 }
 
 .input-box input {
-  flex: 1;  /* Takes 80% of the input-box width */
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 14px;
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 20px;
+  background: #fff;
+  font-size: 15px;
   outline: none;
-  transition: border-color 0.3s;
-
-}
-
-.input-box input:focus {
-  border-color: #4caf50;
 }
 
 .input-box button {
-  flex: 1;  /* Takes 20% of the input-box width */
-  padding: 8px 16px;
-  background-color: #4caf50;
+  padding: 8px 20px;
+  background-color: #00a884;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 20px;
   cursor: pointer;
-  font-size: 14px;
   font-weight: 500;
-  transition: background-color 0.3s;
-  height: 40px;
-  white-space: nowrap;
+  transition: background-color 0.2s;
 }
 
-.input-box button:hover {
-  background-color: #45a049;
+.input-box button:hover:not(:disabled) {
+  background-color: #008f72;
 }
 
 .input-box button:disabled {
-  background-color: #cccccc;
+  background-color: #ccc;
   cursor: not-allowed;
 }
 
-.connection-status {
-  padding: 8px 10px;
-  text-align: center;
-  margin: 10px;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.connection-status.connected {
-  background-color: #4caf50;
-  color: white;
+/* Scrollbar styling */
+.message-box-container::-webkit-scrollbar {
+  width: 6px;
 }
 
-.connection-status.disconnected {
-  background-color: #f44336;
-  color: white;
+.message-box-container::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.input-box input:disabled,
-.input-box button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.app-container {
-  display: flex;
-  height: 100vh;
-  background-color: #f0f2f5;
+.message-box-container::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
 }
 
 /* Sidebar Styles */
@@ -362,28 +372,6 @@ body {
   cursor: pointer;
 }
 
-/* Connection Status */
-.connection-status {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  padding: 4px;
-  text-align: center;
-  font-size: 13px;
-  z-index: 1;
-}
-
-.connection-status.connected {
-  background-color: #00a884;
-  color: white;
-}
-
-.connection-status.disconnected {
-  background-color: #ea0038;
-  color: white;
-}
-
 /* Update/Add these styles */
 .users-panel-toggle {
   background: transparent;
@@ -459,15 +447,57 @@ body {
   font-weight: 500;
 }
 
-.message-container {
-  margin: 8px 0;
-  display: flex;
-  flex-direction: column;
-  max-width: 60%;
-}
-
 .no-messages {
   text-align: center;
-  color: #666;
+  color: #667781;
   padding: 20px;
+  font-size: 14px;
+}
+
+/* Add these styles for the message container scrollbar */
+.message-box-container::-webkit-scrollbar {
+  width: 5px;
+  background-color: transparent;
+}
+
+.message-box-container::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+.message-box-container::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 20px;
+}
+
+.message-box-container:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.message-box-container:hover::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* For Firefox */
+.message-box-container {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.message-box-container:hover {
+  scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
+}
+
+/* Debug styles - add these temporarily to check positioning */
+.message-bubble {
+  border: 1px solid transparent; /* Helps visualize the bubble boundaries */
+}
+
+.message-content {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Adds depth to messages */
+}
+
+/* Add z-index to ensure messages are above other elements */
+.message-box {
+  position: relative;
+  z-index: 1;
 }

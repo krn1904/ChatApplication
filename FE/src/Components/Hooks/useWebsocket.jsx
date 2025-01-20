@@ -3,7 +3,47 @@ import config from "../../config.js"
 
 const WebSocketContext = createContext();
 
-export const useWebSocket = () => useContext(WebSocketContext);
+export const useWebSocket = () => {
+  const [socket, setSocket] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
+
+  useEffect(() => {
+    // Create WebSocket connection
+    const ws = new WebSocket(config.BaseURL);
+
+    ws.onopen = () => {
+      console.log('WebSocket Connected');
+      setIsConnected(true);
+      setSocket(ws);
+    };
+
+    ws.onclose = () => {
+      console.log('WebSocket Disconnected');
+      setIsConnected(false);
+      setSocket(null);
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket Error:', error);
+    };
+
+    return () => {
+      if (ws) {
+        ws.close();
+      }
+    };
+  }, []);
+
+  const sendMessage = useCallback((message) => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify(message));
+    } else {
+      console.error('WebSocket is not connected');
+    }
+  }, [socket]);
+
+  return { socket, isConnected, sendMessage };
+};
 
 export const WebSocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);

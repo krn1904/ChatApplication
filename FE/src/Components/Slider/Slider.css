@@ -1,0 +1,59 @@
+.slider {
+  position: fixed;
+  left: -300px;
+  top: 60px; /* Height of navbar */
+  width: 300px;
+  height: calc(100vh - 60px);
+  background: #ffffff;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  transition: left 0.3s ease;
+  z-index: 1000;
+}
+
+.slider.open {
+  left: 0;
+}
+
+.slider-header {
+  padding: 16px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.slider-header h3 {
+  margin: 0;
+  color: #212529;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.slider-content {
+  padding: 16px;
+  overflow-y: auto;
+  height: calc(100% - 53px);
+}
+
+.placeholder-content {
+  text-align: center;
+  color: #6c757d;
+  padding: 20px;
+}
+
+/* Add overlay when slider is open */
+.slider-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 999;
+}
+
+.slider-overlay.visible {
+  opacity: 1;
+  visibility: visible;
+} 

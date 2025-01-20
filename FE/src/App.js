@@ -4,6 +4,7 @@ import Main from "./Components/Main/Main.js";
 import Login from "./Components/LoginPage/LoginPage.js";
 import Home from "./Components/Home/Home.js";
 import { WebSocketProvider } from "./Components/Hooks/useWebsocket.jsx";
+import AboutUs from './Components/AboutUs/AboutUs';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Login />} />
           <Route path="/chat" element={<Main />} />
+          <Route path="/about" element={<AboutUs />} />
         </Routes>
       </WebSocketProvider>
     </Router>

@@ -4,6 +4,11 @@
     padding: 10px 0;
     color: white;
     transition: background-color 0.3s ease;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
   }
   
   .top-navbar.connected {
@@ -22,30 +27,25 @@
     padding: 0 20px;
   }
   
-  /* Navbar Brand */
-  .navbar-brand {
-    font-size: 24px;
-    font-weight: bold;
+  .left-section {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 20px;
+  }
+  
+  /* Navbar Brand */
+  .navbar-brand {
+    font-size: 20px;
+    font-weight: bold;
   }
   
   .navbar-brand::after {
-    content: '';
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-left: 8px;
+    display: none;
   }
   
-  .connected .navbar-brand::after {
-    background-color: #00a884;
-  }
-  
+  .connected .navbar-brand::after,
   .disconnected .navbar-brand::after {
-    background-color: #ea0038;
+    display: none;
   }
   
   /* Navbar Links */
@@ -54,6 +54,7 @@
     display: flex;
     margin: 0;
     padding: 0;
+    margin-left: auto;
   }
   
   .nav-item {
@@ -68,5 +69,119 @@
   
   .nav-link:hover {
     color: lightgray;
+  }
+  
+  .hamburger-menu {
+    cursor: pointer;
+    padding: 10px;
+    z-index: 1001;
+  }
+  
+  .hamburger-icon {
+    width: 24px;
+    height: 20px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  .hamburger-icon span {
+    display: block;
+    height: 2px;
+    width: 100%;
+    background: white;
+    transition: all 0.3s ease;
+  }
+  
+  .hamburger-icon.open span:first-child {
+    transform: rotate(45deg) translate(6px, 6px);
+  }
+  
+  .hamburger-icon.open span:nth-child(2) {
+    opacity: 0;
+  }
+  
+  .hamburger-icon.open span:last-child {
+    transform: rotate(-45deg) translate(6px, -6px);
+  }
+  
+  /* Update existing styles */
+  .navbar-brand-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    user-select: none; /* Prevent text selection */
+  }
+  
+  .connection-status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  
+  .status-dot.connected {
+    background-color: #4caf50;
+    box-shadow: 0 0 4px #4caf50;
+  }
+  
+  .status-dot.disconnected {
+    background-color: #f44336;
+    box-shadow: 0 0 4px #f44336;
+  }
+  
+  .status-text {
+    color: rgba(255, 255, 255, 0.9);
+  }
+  
+  /* Remove the old connection status styles */
+  .top-navbar.connected,
+  .top-navbar.disconnected {
+    background-color: #343a40;
+  }
+  
+  /* Add these styles */
+  .back-link {
+    text-decoration: none;
+    color: white;
+  }
+  
+  .back-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+  }
+  
+  .back-button:hover {
+    opacity: 0.8;
+  }
+  
+  .back-arrow {
+    font-size: 20px;
+    line-height: 1;
+  }
+  
+  /* Add these styles */
+  .navbar-brand.clickable {
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+  }
+  
+  .navbar-brand.clickable:hover {
+    opacity: 0.8;
   }
   

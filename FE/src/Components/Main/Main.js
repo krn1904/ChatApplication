@@ -1,29 +1,89 @@
 import React, { useEffect, useState } from "react";
 import "./Main.css";
 import TopNavBar from "../TopnavBar/TopNavBar";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useWebSocket } from "../Hooks/useWebsocket.jsx";
 
 function Main() {
   const [messageInput, setMessageInput] = useState("");
-  const [chat, setChat] = useState([]); 
-  // const [inputValue, setInputValue] = useState("");
-
+  const [chat, setChat] = useState([]);
   const locationData = useLocation();
-  const { username, room_id } = locationData.state;
+  const navigate = useNavigate();
   const { socket, isConnected, sendMessage } = useWebSocket();
 
-  // Event handler to update the message input
+  // First useEffect - check for valid state
+  useEffect(() => {
+    if (!locationData.state?.username || !locationData.state?.room_id) {
+      navigate('/', { replace: true });
+    }
+  }, [locationData.state, navigate]);
+
+  // Second useEffect - socket event handlers
+  useEffect(() => {
+    if (!locationData.state?.username || !locationData.state?.room_id || !socket || !isConnected) return;
+
+    const { username, room_id } = locationData.state;
+
+    // Join room when component mounts
+    const joinMessage = {
+      method: 'join-room',
+      username,
+      room: room_id
+    };
+    sendMessage(joinMessage);
+
+    // Set up message handler
+    const handleMessage = (event) => {
+      try {
+        const receivedMessage = JSON.parse(event.data);
+        console.log('Received message:', receivedMessage);
+
+        if (receivedMessage.method === 'new-message') {
+          setChat(prevChat => {
+            // Check if message already exists to prevent duplicates
+            const messageExists = prevChat.some(msg => 
+              msg.message === receivedMessage.message && 
+              msg.author === receivedMessage.author &&
+              msg.timestamp === receivedMessage.timestamp
+            );
+            
+            if (!messageExists) {
+              return [...prevChat, receivedMessage];
+            }
+            return prevChat;
+          });
+        }
+      } catch (error) {
+        console.error('Error processing message:', error);
+      }
+    };
+
+    socket.addEventListener('message', handleMessage);
+
+    // Cleanup on unmount
+    return () => {
+      socket.removeEventListener('message', handleMessage);
+      const leaveMessage = {
+        method: 'leave-room',
+        username,
+        room: room_id
+      };
+      sendMessage(leaveMessage);
+    };
+  }, [socket, isConnected, locationData.state, sendMessage]);
+
+  if (!locationData.state?.username || !locationData.state?.room_id) {
+    return null;
+  }
+
+  const { username, room_id } = locationData.state;
+
   const handleInputChange = (event) => {
     setMessageInput(event.target.value);
   };
 
-  // Event handler for submitting the message
   const handleSubmit = () => {
-    if (messageInput.trim() !== "") {
-      // setMessages([...messages, { text: inputValue, type: "sent" }]);
-      // setInputValue("");
-
+    if (messageInput.trim() !== "" && isConnected) {
       const message = {
         method: 'send-message',
         author: username,
@@ -34,87 +94,46 @@ function Main() {
           minute: '2-digit' 
         })
       };
-
-      if (isConnected) {
-        sendMessage(message);
-        setChat(prevChat => [...prevChat, message]);
-        setMessageInput("");
-      } else {
-        console.error("WebSocket is not connected");
-        alert("Connection lost. Please try again.");
-      }
-    } else {
-      console.log("Enter valid message");
-      alert("Enter valid Message!");
+      
+      // Add message to chat immediately for the sender
+      setChat(prevChat => [...prevChat, message]);
+      
+      // Send message to others
+      sendMessage(message);
+      setMessageInput("");
     }
   };
 
-  useEffect(() => {
-    if (socket) {
-      const handleMessage = (event) => {
-        try {
-          const message = JSON.parse(event.data);
-          
-          // Add the message to chat if it's not from the current user
-          if (message.author !== username) {
-            setChat(prevChat => {
-              // Check if message already exists
-              const messageExists = prevChat.some(
-                msg => 
-                  msg.message === message.message && 
-                  msg.author === message.author &&
-                  msg.timestamp === message.timestamp
-              );
-              
-              if (!messageExists) {
-                return [...prevChat, message];
-              }
-              return prevChat;
-            });
-          }
-        } catch (error) {
-          console.error('Error processing received message:', error);
-        }
-      };
-
-      // Set up message handler
-      socket.addEventListener('message', handleMessage);
-
-      // Cleanup
-      return () => {
-        socket.removeEventListener('message', handleMessage);
-      };
-    }
-  }, [socket, username]);
-
   const handleKeyDown = (event) => {
-    if (event.key === 'Enter') {
+    if (event.key === "Enter") {
       handleSubmit();
     }
   };
-
-  // Add connection status indicator
-  const connectionStatus = isConnected ? (
-    <div className="connection-status connected">Connected</div>
-  ) : (
-    <div className="connection-status disconnected">Disconnected</div>
-  );
 
   return (
     <>
       <TopNavBar />
       <div className="app">
-        {connectionStatus}
         <div className="message-box-container">
           <div className="message-box">
-            {chat.map((message, index) => (
-              <div key={index} className={`${message.author === username ? 'sent' : 'receive'}`}>
-                <div className="message">{message.message}</div>
-                <div className={`sender-name ${message.author === username ? 'sender' : 'receiver'}`}>
-                  {message.author}
+            {chat.length === 0 ? (
+              <div className="no-messages">No messages yet</div>
+            ) : (
+              chat.map((message, index) => (
+                <div 
+                  key={`${message.author}-${message.timestamp}-${index}`}
+                  className={`message-bubble ${message.author === username ? 'sent' : 'received'}`}
+                >
+                  <div className="message-content">
+                    {message.author !== username && (
+                      <span className="message-author">{message.author}</span>
+                    )}
+                    <div className="message-text">{message.message}</div>
+                    <span className="message-time">{message.timestamp}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
           <div className="input-box">
             <input
