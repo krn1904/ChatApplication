@@ -3,6 +3,15 @@
     background-color: #343a40;
     padding: 10px 0;
     color: white;
+    transition: background-color 0.3s ease;
+  }
+  
+  .top-navbar.connected {
+    background-color: #00a884;
+  }
+  
+  .top-navbar.disconnected {
+    background-color: #ea0038;
   }
   
   /* Container for Navbar Brand and Links */
@@ -17,6 +26,26 @@
   .navbar-brand {
     font-size: 24px;
     font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .navbar-brand::after {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-left: 8px;
+  }
+  
+  .connected .navbar-brand::after {
+    background-color: #00a884;
+  }
+  
+  .disconnected .navbar-brand::after {
+    background-color: #ea0038;
   }
   
   /* Navbar Links */

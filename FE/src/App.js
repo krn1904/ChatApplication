@@ -1,7 +1,8 @@
 import "./Styles/App.css";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Main from "./Components/Main/Main.js";
-import Login from "./Components/LoginPage/LoginPage.jsx";
+import Login from "./Components/LoginPage/LoginPage.js";
+import Home from "./Components/Home/Home.js";
 import { WebSocketProvider } from "./Components/Hooks/useWebsocket.jsx";
 
 function App() {
@@ -9,8 +10,10 @@ function App() {
     <Router>
       <WebSocketProvider>
         <Routes>
+          <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Main />} />
+          <Route path="/signup" element={<Login />} />
+          <Route path="/chat" element={<Main />} />
         </Routes>
       </WebSocketProvider>
     </Router>

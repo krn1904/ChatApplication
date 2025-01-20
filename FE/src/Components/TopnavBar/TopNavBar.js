@@ -1,7 +1,7 @@
 import React from 'react';
 import './TopNavBar.css'; // Import your custom CSS
 
-function TopNavBar() {
+function TopNavBar({ children }) {
   return (
     <div className="top-navbar">
       <div className="container">
@@ -22,6 +22,7 @@ function TopNavBar() {
           </li>
         </ul>
       </div>
+      {children}
     </div>
 
   );

@@ -1,47 +1,128 @@
 const { WebSocket } = require('ws');
-const message = require('../Tables/Message.js');
+const Message = require('../models/Message');
 
 const api = new Map();
 const rooms = new Map();
 const roomMessages = new Map();
 
- const handleMessage = async (req, clients, ws) => {
+const handleMessage = async (data, clients, sender) => {
+    try {
+        switch (data.method) {
+            case 'join-room':
+                // Add user to room
+                if (!rooms.has(data.room)) {
+                    rooms.set(data.room, new Set());
+                }
+                rooms.get(data.room).add(data.author);
 
-    if (api.has(req.method)){
+                // Send message history
+                const messageHistory = await Message.find({ room: data.room })
+                    .sort({ createdAt: 1 })
+                    .limit(100);
+                
+                sender.send(JSON.stringify({
+                    method: 'message-history',
+                    messages: messageHistory
+                }));
 
-        let requectMethod = api.get(req.method);
+                // Broadcast updated user list to all clients in the room
+                const roomUsers = Array.from(rooms.get(data.room));
+                clients.forEach(client => {
+                    if (client.roomId === data.room && client.readyState === WebSocket.OPEN) {
+                        client.send(JSON.stringify({
+                            method: 'room-users',
+                            users: roomUsers
+                        }));
+                    }
+                });
+                break;
 
-        let res = await requectMethod(req, clients, ws)
+            case 'send-message':
+                // Save message to database
+                const newMessage = new Message({
+                    author: data.author,
+                    message: data.message,
+                    room: data.room,
+                    timestamp: data.timestamp
+                });
+                await newMessage.save();
 
-        return res
+                // Broadcast to all clients in the same room
+                clients.forEach(client => {
+                    if (client !== sender && client.roomId === data.room && client.readyState === WebSocket.OPEN) {
+                        client.send(JSON.stringify({
+                            method: 'new-message',
+                            author: data.author,
+                            message: data.message,
+                            room: data.room,
+                            timestamp: data.timestamp
+                        }));
+                    }
+                });
+                break;
+
+            default:
+                console.log('Unknown message type:', data.method);
+        }
+    } catch (error) {
+        console.error('Error handling message:', error);
+        sender.send(JSON.stringify({
+            method: 'error',
+            message: 'Failed to process message'
+        }));
     }
+};
 
-}
+const handleDisconnect = (ws, clients) => {
+    if (ws.roomId && rooms.has(ws.roomId)) {
+        const room = rooms.get(ws.roomId);
+        room.delete(ws.author);
+
+        // Broadcast updated user list to remaining clients in the room
+        const roomUsers = Array.from(room);
+        clients.forEach(client => {
+            if (client.roomId === ws.roomId && client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({
+                    method: 'room-users',
+                    users: roomUsers
+                }));
+            }
+        });
+
+        // Clean up empty rooms
+        if (room.size === 0) {
+            rooms.delete(ws.roomId);
+        }
+    }
+};
 
 // When message has been send set the message to the respective room.
 api.set("send-message", async (req, clients, ws) => {
-    let message = req.message;
-    let userId = req.author;
-    let roomId = req.room;
+    const { message, author: senderId, room: recieverId } = req;
 
-    // Check if the room exists, if not, create a new room
-    if (!roomMessages.has(roomId)) {
-        roomMessages.set(roomId, []);
+    try {
+        // Store message in MongoDB
+        const newMessage = new Message({
+            senderId: parseInt(senderId),
+            recieverId: parseInt(recieverId),
+            message: message
+        });
+        await newMessage.save();
+
+        // Check if the room exists, if not, create a new room
+        if (!roomMessages.has(recieverId)) {
+            roomMessages.set(recieverId, []);
+        }
+
+        // Save the message to the in-memory room messages
+        if (message) {
+            roomMessages.get(recieverId).push({ senderId, message });
+            sendMessageToRoom(senderId, message, clients, ws);
+            console.log(`Message sent by ${senderId} to ${recieverId}: ${message}`);
+        }
+    } catch (error) {
+        console.error('Error saving message:', error);
     }
-
-    // Save the message to the messages array for the room
-    if (message) {
-        roomMessages.get(roomId).push({ userId, message });
-        
-        sendMessageToRoom(userId, message, clients, ws)
-
-        console.log(`Message sent by ${userId} in room ${roomId}: ${message}`);
-    }
-    // return whole map to the room so we can extract data over FE.
-    // console.log(roomMessages)
-    // console.log("rooms",rooms)
-    // const room_messageList = roomMessages.get(roomId);
-    // return room_messageList
 })
 
 api.set("joinRoom", async (req, clients, websocketConnection) => {
@@ -50,7 +131,7 @@ api.set("joinRoom", async (req, clients, websocketConnection) => {
 
     const websocketConnectionObj = { websocketConnection }
 
-    // If room has not available then set a new one.
+    // If room is not available then set a new one
     if (!rooms.has(roomId)) {
         rooms.set(roomId, new Set());
     }
@@ -65,36 +146,55 @@ api.set("joinRoom", async (req, clients, websocketConnection) => {
 })
 
 api.set("get-chats", async (req) => {
-    let chats = req.params.withUser;
+    try {
+        const userId = req.params.withUser;
+        // Fetch all messages where the user is either sender or receiver
+        const messages = await Message.find({
+            $or: [
+                { senderId: userId },
+                { recieverId: userId }
+            ]
+        }).sort({ createdAt: -1 });
+        return messages;
+    } catch (error) {
+        console.error('Error fetching chats:', error);
+        return [];
+    }
 })
 
 api.set("get-messages", async (req) => {
-    let roomId = req.room;
-
-    // Return the messages for the specified room
-    return roomMessages.get(roomId) || [];
+    try {
+        const { room: recieverId, user: senderId } = req;
+        // Fetch messages between these two users
+        const messages = await Message.find({
+            $or: [
+                { senderId: senderId, recieverId: recieverId },
+                { senderId: recieverId, recieverId: senderId }
+            ]
+        }).sort({ createdAt: 1 });
+        return messages;
+    } catch (error) {
+        console.error('Error fetching messages:', error);
+        return [];
+    }
 });
 
-// Function to send a message to all users in a room
 function sendMessageToRoom(userId, message, clients, ws) {
-
     clients.forEach(function each(client) {
-        // console.log(client.WebSocket == ws)
-          if (client.readyState === WebSocket.OPEN) {
+        if (client.readyState === WebSocket.OPEN) {
             const MsgObj = {
                 method: 'send-message',
                 author: userId,
                 message: message,
-                // room: roomId,
-                timestamp: new Date().getHours() + new Date().getMinutes(),
-              };
+                timestamp: new Date().toISOString(),
+            };
             client.send(JSON.stringify(MsgObj));
-          }
-        })
-    
+        }
+    });
 }
 
 module.exports = {
     handleMessage,
-    api, // if you need to use 'api' in another file
+    handleDisconnect,
+    api,
 };
