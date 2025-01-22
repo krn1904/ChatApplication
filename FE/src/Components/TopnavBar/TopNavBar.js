@@ -4,7 +4,7 @@ import Slider from '../Slider/Slider';
 import { useWebSocket } from '../Hooks/useWebsocket';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-const TopNavBar = () => {
+const TopNavBar = ({ hideConnectionStatus = false, hideHamburger = false }) => {
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const { isConnected } = useWebSocket();
   const location = useLocation();
@@ -28,7 +28,7 @@ const TopNavBar = () => {
                   <span>Back to Chat</span>
                 </div>
               </Link>
-            ) : (
+            ) : !hideHamburger && (
               <div className="hamburger-menu" onClick={toggleSlider}>
                 <div className={`hamburger-icon ${isSliderOpen ? 'open' : ''}`}>
                   <span></span>
@@ -39,10 +39,12 @@ const TopNavBar = () => {
             )}
             <div className="navbar-brand-container">
               <span className="navbar-brand">Chat App</span>
-              <div className="connection-status-indicator">
-                <span className={`status-dot ${isConnected ? 'connected' : 'disconnected'}`}></span>
-                <span className="status-text">{isConnected ? 'Connected' : 'Disconnected'}</span>
-              </div>
+              {!hideConnectionStatus && (
+                <div className="connection-status-indicator">
+                  <span className={`status-dot ${isConnected ? 'connected' : 'disconnected'}`}></span>
+                  <span className="status-text">{isConnected ? 'Connected' : 'Disconnected'}</span>
+                </div>
+              )}
             </div>
           </div>
           <ul className="nav">
@@ -54,13 +56,17 @@ const TopNavBar = () => {
       </nav>
       
       {/* Overlay */}
-      <div 
-        className={`slider-overlay ${isSliderOpen ? 'visible' : ''}`} 
-        onClick={() => setIsSliderOpen(false)}
-      />
+      {!hideHamburger && (
+        <div 
+          className={`slider-overlay ${isSliderOpen ? 'visible' : ''}`} 
+          onClick={() => setIsSliderOpen(false)}
+        />
+      )}
       
       {/* Slider component */}
-      <Slider isOpen={isSliderOpen} onClose={() => setIsSliderOpen(false)} />
+      {!hideHamburger && (
+        <Slider isOpen={isSliderOpen} onClose={() => setIsSliderOpen(false)} />
+      )}
     </>
   );
 };
