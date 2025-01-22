@@ -1,14 +1,16 @@
 /* Top Navbar Container */
 .top-navbar {
-    background-color: #343a40;
-    padding: 10px 0;
-    color: white;
-    transition: background-color 0.3s ease;
+    background: var(--navbar-bg);
+    backdrop-filter: blur(10px);
+    padding: 0.75rem 0;
+    color: var(--text-primary);
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     z-index: 1000;
+    border-bottom: 1px solid var(--border-color);
+    transition: all var(--transition-normal);
   }
   
   .top-navbar.connected {
@@ -24,19 +26,31 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 20px;
+    padding: 0 0.5rem;
+    width: 100%;
   }
   
   .left-section {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 1rem;
+  }
+  
+  .right-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-right: 0;
   }
   
   /* Navbar Brand */
   .navbar-brand {
-    font-size: 20px;
+    font-size: 1.5rem;
     font-weight: bold;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 0.5px;
   }
   
   .navbar-brand::after {
@@ -54,7 +68,7 @@
     display: flex;
     margin: 0;
     padding: 0;
-    margin-left: auto;
+    gap: 1.5rem;
   }
   
   .nav-item {
@@ -63,18 +77,35 @@
   
   .nav-link {
     text-decoration: none;
-    color: white;
-    transition: color 0.3s;
+    color: var(--text-secondary);
+    transition: all var(--transition-normal);
+    font-weight: 500;
+    position: relative;
+    padding: 0.5rem 0;
+  }
+  
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--primary-gradient);
+    transition: width var(--transition-normal);
   }
   
   .nav-link:hover {
-    color: lightgray;
+    color: var(--text-primary);
+  }
+  
+  .nav-link:hover::after {
+    width: 100%;
   }
   
   .hamburger-menu {
     cursor: pointer;
-    padding: 10px;
-    z-index: 1001;
+    padding: 0.5rem 0.5rem 0.5rem 0;
   }
   
   .hamburger-icon {
@@ -90,8 +121,9 @@
     display: block;
     height: 2px;
     width: 100%;
-    background: white;
-    transition: all 0.3s ease;
+    background: var(--text-primary);
+    transition: all var(--transition-normal);
+    border-radius: 2px;
   }
   
   .hamburger-icon.open span:first-child {
@@ -117,32 +149,33 @@
   .connection-status-indicator {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 14px;
-    padding: 4px 8px;
-    border-radius: 4px;
-    background: rgba(255, 255, 255, 0.1);
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    font-size: 0.875rem;
   }
   
   .status-dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    display: inline-block;
+    transition: all var(--transition-normal);
   }
   
   .status-dot.connected {
-    background-color: #4caf50;
-    box-shadow: 0 0 4px #4caf50;
+    background: var(--success-color);
+    box-shadow: 0 0 10px var(--success-color);
   }
   
   .status-dot.disconnected {
-    background-color: #f44336;
-    box-shadow: 0 0 4px #f44336;
+    background: var(--error-color);
+    box-shadow: 0 0 10px var(--error-color);
   }
   
   .status-text {
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--text-secondary);
   }
   
   /* Remove the old connection status styles */
@@ -160,19 +193,18 @@
   .back-button {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px;
-    cursor: pointer;
-    transition: opacity 0.3s ease;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    color: var(--text-secondary);
+    transition: color var(--transition-normal);
   }
   
   .back-button:hover {
-    opacity: 0.8;
+    color: var(--text-primary);
   }
   
   .back-arrow {
-    font-size: 20px;
-    line-height: 1;
+    font-size: 1.25rem;
   }
   
   /* Add these styles */
@@ -183,5 +215,57 @@
   
   .navbar-brand.clickable:hover {
     opacity: 0.8;
+  }
+  
+  /* Theme Toggle Button */
+  .theme-toggle {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    transition: all var(--transition-normal);
+  }
+  
+  .theme-toggle:hover {
+    background: var(--surface-color);
+    border-color: var(--accent-color);
+  }
+  
+  .theme-toggle svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .container {
+      padding: 0 1rem;
+    }
+  
+    .navbar-brand {
+      font-size: 1.25rem;
+    }
+  
+    .connection-status-indicator {
+      display: none;
+    }
+  
+    .theme-toggle span {
+      display: none;
+    }
+  
+    .theme-toggle {
+      padding: 8px;
+    }
   }
   

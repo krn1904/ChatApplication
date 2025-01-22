@@ -58,24 +58,24 @@ body {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  padding: var(--spacing-md);
-  padding-bottom: 80px;
+  padding: var(--spacing-sm);
+  padding-bottom: 70px;
 }
 
 .message-box {
-  padding: var(--spacing-md);
+  padding: var(--spacing-xs);
   display: flex;
   flex-direction: column;
   min-height: min-content;
   width: 100%;
-  max-width: 1200px;
   margin: 0 auto;
 }
 
 .message-bubble {
   display: flex;
-  margin: var(--spacing-xs) 0;
-  max-width: 65%;
+  flex-direction: column;
+  margin: 4px 0;
+  max-width: 60%;
   animation: fadeIn var(--transition-normal);
   position: relative;
   clear: both;
@@ -92,17 +92,17 @@ body {
 
 .message-content {
   position: relative;
-  padding: var(--spacing-md);
-  border-radius: var(--radius-lg);
-  font-size: 0.9375rem;
-  line-height: 1.5;
-  min-width: 120px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  min-width: 80px;
 }
 
 .sent .message-content {
   background: var(--primary-gradient);
-  color: var(--text-primary);
-  margin-left: auto;
+  color: var(--white);
+  border-radius: 12px 12px 0 12px;
 }
 
 .received .message-content {
@@ -110,28 +110,45 @@ body {
   backdrop-filter: blur(10px);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
+  border-radius: 12px 12px 12px 0;
 }
 
 .message-author {
-  display: block;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 500;
-  color: var(--accent-color);
-  margin-bottom: var(--spacing-xs);
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  padding-left: 4px;
 }
 
 .message-text {
   word-wrap: break-word;
   white-space: pre-wrap;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.sent .message-text {
+  color: var(--white);
+}
+
+.received .message-text {
+  color: var(--text-primary);
 }
 
 .message-time {
-  display: inline-block;
-  font-size: 0.75rem;
+  font-size: 0.675rem;
   color: var(--text-secondary);
-  margin-left: var(--spacing-sm);
-  float: right;
-  margin-top: var(--spacing-xs);
+  margin-top: 4px;
+  padding: 0 4px;
+}
+
+.sent .message-time {
+  text-align: right;
+}
+
+.received .message-time {
+  text-align: left;
 }
 
 .input-box {
@@ -144,7 +161,7 @@ body {
   align-items: center;
   padding: var(--spacing-md) var(--spacing-lg);
   gap: var(--spacing-md);
-  background: var(--surface-color);
+  background: var(--input-bg);
   backdrop-filter: blur(10px);
   border-top: 1px solid var(--border-color);
   height: auto;
@@ -155,13 +172,25 @@ body {
   padding: 12px 16px;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  background: #ffffff;
-  color: #1a1a1a;
+  background: var(--background);
+  color: var(--text-primary);
   font-size: 15px;
   height: auto;
   min-height: 44px;
   width: 100%;
   transition: all var(--transition-normal);
+}
+
+/* Dark theme specific styles */
+[data-theme="dark"] .input-box input {
+  color: var(--text-primary);
+  background: var(--surface-color);
+}
+
+/* Light theme specific styles */
+[data-theme="light"] .input-box input {
+  color: var(--text-primary);
+  background: var(--white);
 }
 
 .input-box input:focus {
@@ -171,7 +200,7 @@ body {
 }
 
 .input-box input::placeholder {
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .input-box button {
@@ -220,7 +249,11 @@ body {
 /* Responsive Design */
 @media (max-width: 768px) {
   .message-bubble {
-    max-width: 85%;
+    max-width: 75%;
+  }
+  
+  .message-content {
+    padding: 6px 10px;
   }
 
   .input-box {
@@ -396,7 +429,6 @@ body {
 
 /* Input Box Styles */
 .input-box {
-  background-color: #f0f2f5;
   padding: 5px 16px;
   display: flex;
   align-items: center;

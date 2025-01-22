@@ -124,13 +124,13 @@ function Main() {
                   key={`${message.author}-${message.timestamp}-${index}`}
                   className={`message-bubble ${message.author === username ? 'sent' : 'received'}`}
                 >
-                  <div className="message-content">
                     {message.author !== username && (
                       <span className="message-author">{message.author}</span>
                     )}
+                  <div className="message-content">
                     <div className="message-text">{message.message}</div>
-                    <span className="message-time">{message.timestamp}</span>
                   </div>
+                    <span className="message-time">{message.timestamp}</span>
                 </div>
               ))
             )}
