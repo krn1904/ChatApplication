@@ -4,10 +4,11 @@
   top: 60px; /* Height of navbar */
   width: 300px;
   height: calc(100vh - 60px);
-  background: #ffffff;
+  background: var(--background);
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   transition: left 0.3s ease;
   z-index: 1000;
+  border-right: 1px solid var(--border-color);
 }
 
 .slider.open {
@@ -16,15 +17,15 @@
 
 .slider-header {
   padding: 16px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #dee2e6;
+  background: var(--surface-color);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .slider-header h3 {
   margin: 0;
-  color: #212529;
-  font-size: 18px;
-  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 1.125rem;
+  font-weight: 600;
 }
 
 .slider-content {
@@ -33,13 +34,63 @@
   height: calc(100% - 53px);
 }
 
-.placeholder-content {
+.slider-loading,
+.slider-error,
+.slider-empty {
   text-align: center;
-  color: #6c757d;
+  color: var(--text-secondary);
   padding: 20px;
+  font-size: 0.875rem;
 }
 
-/* Add overlay when slider is open */
+.slider-error {
+  color: var(--error-color);
+}
+
+.users-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+  margin-bottom: 4px;
+}
+
+.user-item:hover {
+  background: var(--surface-color);
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--primary-gradient);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1.125rem;
+  margin-right: 12px;
+}
+
+.user-info {
+  flex: 1;
+}
+
+.user-name {
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+/* Overlay when slider is open */
 .slider-overlay {
   position: fixed;
   top: 0;

@@ -23,6 +23,10 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Store WebSocket server and rooms map in app for route access
+const rooms = new Map();
+app.set('rooms', rooms);
+
 // API Routes
 app.use('/api/users', userRoutes);
 app.use('/api/messages', messageRoutes);
@@ -37,6 +41,9 @@ const wss = new WebSocket.Server({
     pingTimeout: 30000,
     pingInterval: 10000
 });
+
+// Store WebSocket server in app
+app.set('wss', wss);
 
 // Store clients with additional metadata
 const clients = new Map();
@@ -72,7 +79,7 @@ const initConnection = (ws) => {
                 ws.author = req.author;
             }
             
-            await handleMessage(req, Array.from(clients.values()), ws);
+            await handleMessage(req, Array.from(clients.values()), ws, rooms);
         } catch (error) {
             console.error('Error handling WebSocket message:', error);
             ws.send(JSON.stringify({
@@ -84,13 +91,13 @@ const initConnection = (ws) => {
 
     ws.on('close', () => {
         console.log(`Client ${ws.id} disconnected`);
-        handleDisconnect(ws, Array.from(clients.values()));
+        handleDisconnect(ws, Array.from(clients.values()), rooms);
         clients.delete(ws.id);
     });
 
     ws.on('error', (error) => {
         console.error(`WebSocket error for client ${ws.id}:`, error);
-        handleDisconnect(ws, Array.from(clients.values()));
+        handleDisconnect(ws, Array.from(clients.values()), rooms);
         clients.delete(ws.id);
     });
 };

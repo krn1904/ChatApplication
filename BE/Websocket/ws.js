@@ -2,10 +2,9 @@ const { WebSocket } = require('ws');
 const Message = require('../models/Message');
 
 const api = new Map();
-const rooms = new Map();
 const roomMessages = new Map();
 
-const handleMessage = async (data, clients, sender) => {
+const handleMessage = async (data, clients, sender, rooms) => {
     try {
         switch (data.method) {
             case 'join-room':
@@ -13,7 +12,16 @@ const handleMessage = async (data, clients, sender) => {
                 if (!rooms.has(data.room)) {
                     rooms.set(data.room, new Set());
                 }
-                rooms.get(data.room).add(data.author);
+                const room = rooms.get(data.room);
+                
+                // Store user info with the WebSocket client
+                sender.username = data.username || data.author;
+                sender.roomId = data.room;
+                room.add({
+                    username: sender.username,
+                    id: sender.id,
+                    ws: sender
+                });
 
                 // Send message history
                 const messageHistory = await Message.find({ room: data.room })
@@ -26,7 +34,11 @@ const handleMessage = async (data, clients, sender) => {
                 }));
 
                 // Broadcast updated user list to all clients in the room
-                const roomUsers = Array.from(rooms.get(data.room));
+                const roomUsers = Array.from(room).map(user => ({
+                    username: user.username,
+                    id: user.id
+                }));
+                
                 clients.forEach(client => {
                     if (client.roomId === data.room && client.readyState === WebSocket.OPEN) {
                         client.send(JSON.stringify({
@@ -73,13 +85,24 @@ const handleMessage = async (data, clients, sender) => {
     }
 };
 
-const handleDisconnect = (ws, clients) => {
+const handleDisconnect = (ws, clients, rooms) => {
     if (ws.roomId && rooms.has(ws.roomId)) {
         const room = rooms.get(ws.roomId);
-        room.delete(ws.author);
+        
+        // Find and remove the user object that contains this WebSocket
+        for (const user of room) {
+            if (user.ws === ws) {
+                room.delete(user);
+                break;
+            }
+        }
 
         // Broadcast updated user list to remaining clients in the room
-        const roomUsers = Array.from(room);
+        const roomUsers = Array.from(room).map(user => ({
+            username: user.username,
+            id: user.id
+        }));
+        
         clients.forEach(client => {
             if (client.roomId === ws.roomId && client.readyState === WebSocket.OPEN) {
                 client.send(JSON.stringify({
