@@ -26,7 +26,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 0.5rem;
+    padding: 0 1rem;
     width: 100%;
   }
   
@@ -39,17 +39,14 @@
   .right-section {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding-right: 0;
+    gap: 1.25rem;
   }
   
   /* Navbar Brand */
   .navbar-brand {
-    font-size: 1.5rem;
-    font-weight: bold;
-    background: var(--primary-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
     letter-spacing: 0.5px;
   }
   
@@ -62,13 +59,45 @@
     display: none;
   }
   
-  /* Navbar Links */
+  /* Connection Status */
+  .connection-status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 4px;
+    background: var(--surface-color);
+    font-size: 0.8125rem;
+  }
+  
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+  
+  .status-dot.connected {
+    background: var(--success-color);
+    box-shadow: 0 0 6px var(--success-color);
+  }
+  
+  .status-dot.disconnected {
+    background: var(--error-color);
+    box-shadow: 0 0 6px var(--error-color);
+  }
+  
+  .status-text {
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  
+  /* Navigation Links */
   .nav {
     list-style: none;
     display: flex;
     margin: 0;
     padding: 0;
-    gap: 1.5rem;
+    align-items: center;
   }
   
   .nav-item {
@@ -76,31 +105,16 @@
   }
   
   .nav-link {
-    text-decoration: none;
     color: var(--text-secondary);
-    transition: all var(--transition-normal);
+    text-decoration: none;
+    font-size: 0.875rem;
     font-weight: 500;
-    position: relative;
-    padding: 0.5rem 0;
-  }
-  
-  .nav-link::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background: var(--primary-gradient);
-    transition: width var(--transition-normal);
+    transition: color 0.2s ease;
+    padding: 0.4rem 0.5rem;
   }
   
   .nav-link:hover {
     color: var(--text-primary);
-  }
-  
-  .nav-link:hover::after {
-    width: 100%;
   }
   
   .hamburger-menu {
@@ -146,38 +160,6 @@
     user-select: none; /* Prevent text selection */
   }
   
-  .connection-status-indicator {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 9999px;
-    background: var(--surface-color);
-    border: 1px solid var(--border-color);
-    font-size: 0.875rem;
-  }
-  
-  .status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    transition: all var(--transition-normal);
-  }
-  
-  .status-dot.connected {
-    background: var(--success-color);
-    box-shadow: 0 0 10px var(--success-color);
-  }
-  
-  .status-dot.disconnected {
-    background: var(--error-color);
-    box-shadow: 0 0 10px var(--error-color);
-  }
-  
-  .status-text {
-    color: var(--text-secondary);
-  }
-  
   /* Remove the old connection status styles */
   .top-navbar.connected,
   .top-navbar.disconnected {
@@ -217,33 +199,50 @@
     opacity: 0.8;
   }
   
-  /* Theme Toggle Button */
+  /* Theme Toggle */
   .theme-toggle {
     background: transparent;
     border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    padding: 8px 12px;
-    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    padding: 0.4rem;
+    border-radius: 4px;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 14px;
-    transition: all var(--transition-normal);
+    justify-content: center;
+    transition: all 0.2s ease;
   }
   
   .theme-toggle:hover {
     background: var(--surface-color);
-    border-color: var(--accent-color);
+    border-color: var(--border-color);
+    color: var(--text-primary);
   }
   
   .theme-toggle svg {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     stroke: currentColor;
     stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+  }
+  
+  /* Logout Button */
+  .logout-button {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 0.4rem 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+  
+  .logout-button:hover {
+    background: var(--surface-color);
+    border-color: var(--error-color);
+    color: var(--error-color);
   }
   
   /* Responsive Design */
@@ -266,6 +265,15 @@
   
     .theme-toggle {
       padding: 8px;
+    }
+  
+    .nav {
+      gap: 0.75rem;
+    }
+  
+    .nav-link, .logout-button {
+      font-size: 0.8125rem;
+      padding: 0.35rem 0.6rem;
     }
   }
   

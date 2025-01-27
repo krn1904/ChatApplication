@@ -58,7 +58,7 @@ const TopNavBar = ({ hideConnectionStatus = false, hideHamburger = false }) => {
             </div>
           </div>
           <div className="right-section">
-          <button className="theme-toggle" onClick={toggleTheme}>
+            <button className="theme-toggle" onClick={toggleTheme}>
               {theme === 'dark' ? (
                 <>
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
@@ -78,6 +78,16 @@ const TopNavBar = ({ hideConnectionStatus = false, hideHamburger = false }) => {
               <li className="nav-item">
                 <Link to="/about" className="nav-link" state={location.state}>About Us</Link>
               </li>
+              {!hideConnectionStatus && (
+                <li className="nav-item">
+                  <button 
+                    className="logout-button" 
+                    onClick={() => navigate('/', { replace: true })}
+                  >
+                    Logout
+                  </button>
+                </li>
+              )}
             </ul>
           </div>
         </div>
