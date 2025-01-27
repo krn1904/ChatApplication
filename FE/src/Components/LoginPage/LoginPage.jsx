@@ -30,7 +30,7 @@ function Login() {
 
   const buildConnection = () => {
     // Create a new WebSocket connection
-    let ws = new WebSocket(config.BaseURL);
+    let ws = new WebSocket(config.WsURL);
     setWebsocketServer(ws);
     ws.addEventListener("open", () => {
       console.log("WebSocket connection established");

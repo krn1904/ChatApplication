@@ -9,7 +9,7 @@ export const useWebSocket = () => {
 
   useEffect(() => {
     // Create WebSocket connection
-    const ws = new WebSocket(config.BaseURL);
+    const ws = new WebSocket(config.WsURL);
 
     ws.onopen = () => {
       console.log('WebSocket Connected');
@@ -54,7 +54,7 @@ export const WebSocketProvider = ({ children }) => {
 
   const connectWebSocket = useCallback(() => {
     try {
-      const ws = new WebSocket(config.BaseURL);
+      const ws = new WebSocket(config.WsURL);
 
       ws.onopen = () => {
         console.log('WebSocket Connected');
