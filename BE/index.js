@@ -7,6 +7,7 @@ const userRoutes = require('./routes/userRoutes');
 const connectDB = require('./config/db.config');
 const messageRoutes = require('./routes/messageRoutes');
 require('dotenv').config();
+const config = require('./config');
 
 // Initialize express app
 const app = express();
@@ -31,7 +32,7 @@ app.set('rooms', rooms);
 app.use('/api/users', userRoutes);
 app.use('/api/messages', messageRoutes);
 
-const port = process.env.PORT || 8001;
+const port = config.SERVER_PORT || 8001;
 const server = http.createServer(app);
 
 // WebSocket server configuration
