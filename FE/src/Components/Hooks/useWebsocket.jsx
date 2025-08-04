@@ -4,45 +4,11 @@ import config from "../../config.js"
 const WebSocketContext = createContext();
 
 export const useWebSocket = () => {
-  const [socket, setSocket] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
-
-  useEffect(() => {
-    // Create WebSocket connection
-    const ws = new WebSocket(config.WsURL);
-
-    ws.onopen = () => {
-      console.log('WebSocket Connected');
-      setIsConnected(true);
-      setSocket(ws);
-    };
-
-    ws.onclose = () => {
-      console.log('WebSocket Disconnected');
-      setIsConnected(false);
-      setSocket(null);
-    };
-
-    ws.onerror = (error) => {
-      console.error('WebSocket Error:', error);
-    };
-
-    return () => {
-      if (ws) {
-        ws.close();
-      }
-    };
-  }, []);
-
-  const sendMessage = useCallback((message) => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify(message));
-    } else {
-      console.error('WebSocket is not connected');
-    }
-  }, [socket]);
-
-  return { socket, isConnected, sendMessage };
+  const context = useContext(WebSocketContext);
+  if (!context) {
+    throw new Error('useWebSocket must be used within a WebSocketProvider');
+  }
+  return context;
 };
 
 export const WebSocketProvider = ({ children }) => {
@@ -54,7 +20,7 @@ export const WebSocketProvider = ({ children }) => {
 
   const connectWebSocket = useCallback(() => {
     try {
-      const ws = new WebSocket(config.WsURL);
+      const ws = new WebSocket(config.WS_URL);
 
       ws.onopen = () => {
         console.log('WebSocket Connected');
@@ -77,6 +43,7 @@ export const WebSocketProvider = ({ children }) => {
 
       ws.onerror = (error) => {
         console.error('WebSocket Error:', error);
+        setIsConnected(false);
       };
 
       setSocket(ws);
@@ -93,17 +60,18 @@ export const WebSocketProvider = ({ children }) => {
         socket.close();
       }
     };
-  }, [connectWebSocket]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Provide both socket and connection status
+  // Provide socket, connection status, and sendMessage function
   const value = {
     socket,
     isConnected,
     sendMessage: useCallback((message) => {
-      if (socket && isConnected) {
+      if (socket && isConnected && socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify(message));
       } else {
-        console.warn('WebSocket is not connected');
+        console.warn('WebSocket is not connected. Message not sent:', message);
       }
     }, [socket, isConnected])
   };

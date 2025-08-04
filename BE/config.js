@@ -1,7 +1,10 @@
 
+require('dotenv').config();
+
 const config = {
- MongoDb_URL: process.env.MongoDb_URL || 'mongodb+srv://admin:admin@chat-app.quig9nl.mongodb.net/?retryWrites=true&w=majority',
- Port: process.env.SERVER_PORT || '8001'
+    MONGO_URI: process.env.MONGO_URI || 'mongodb+srv://karanssoni2002:karanssoni2002@chatapp.eweag9y.mongodb.net/chat_app',
+    SERVER_PORT: process.env.PORT || 8001,
+    FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000'
 };
-// export default config;
+
 module.exports = config;

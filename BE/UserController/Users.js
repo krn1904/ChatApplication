@@ -1,4 +1,4 @@
-const User = require('../Tables/User');
+const User = require('../models/User');
 const bcrypt = require('bcrypt');
 
 const CreateUser = async (req, res) => {
@@ -106,10 +106,13 @@ const AllUsers = async (req, res) => {
             .select('-password') // Exclude password field
             .sort({ createdAt: -1 });
 
-        return users;
+        res.json({
+            message: 'Users retrieved successfully',
+            users
+        });
     } catch (error) {
         console.error('Error fetching users:', error);
-        throw error;
+        res.status(500).json({ error: 'Internal server error' });
     }
 };
 
