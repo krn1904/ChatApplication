@@ -2,14 +2,16 @@ const express = require('express');
 const  http  = require("http");
 const { WebSocket } = require("ws");
 const { handleMessage } = require('./Websocket/ws');
+const cors = require('cors');
 
 // Code changed to websocket
 const app = express();
 
-const port = 8001
+const port = process.env.PORT || 8001
 const server = http.createServer(app);
 const wss = new WebSocket.Server({server});
 
+app.use(cors()); // Enable CORS for all routes
 app.use(express.json()); // json body parser
 
 wss.on("connection",(ws) => initConnection(ws))
