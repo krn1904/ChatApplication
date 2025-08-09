@@ -1,106 +1,104 @@
-/* UI is changed if not check the previous commit */
+/* Import the unified theme */
+@import url('./theme.css');
 
-/* Add a new class for InputContainer styles */
-.InputContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+/* App Container */
+.App {
+  min-height: 100vh;
+  background-color: var(--background-color);
 }
 
-.InputContainer input {
-  width: 100%;
-  height: 40px;
-  border: 2px solid #43a047;
-  border-radius: 5px;
-  padding: 5px;
-  font-size: 16px;
-}
-
-.InputContainer button {
-  width: 100%;
-  height: 50px;
-  border: none;
-  border-radius: 5px;
-  padding: 5px;
-  font-size: 16px;
-  background: #43a047;
-  color: #fff;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.InputContainer button:hover {
-  background: #2e7d32;
-}
-
-/* Maintain the existing ChatContainer styles */
-/* .ChatContainer {
-  display: flex;
-  flex-direction: column;
-  text-align: center;
-  padding: 20px;
-  border: 2px solid #43a047;
-  border-radius: 10px;
-}
-
-.ChatContainer h3 {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-} */
+/* Chat Container */
 .ChatContainer {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center; /* Center both horizontally and vertically */
-  padding: 20px;
-  /* border: 2px solid #43a047; */
-  border-radius: 10px;
-  background-color: #fff;
-  /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
-  /* max-width: 300px; */
-  /* width: 100%; */
-  /* margin: auto; Center horizontally */
-  margin-top: 20vh; /* Center vertically using a top margin based on your preference */
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--spacing-xl);
+  background-color: var(--background-color);
 }
 
 .ChatContainer h3 {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-  color: #43a047; /* Match the button color for consistency */
+  font-size: var(--font-size-xxl);
+  margin-bottom: var(--spacing-xl);
+  color: var(--primary-color);
+  font-weight: 700;
+  text-align: center;
 }
 
+/* Input Container */
 .InputContainer {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-width: 300px; /* Limit the width of the input container */
+  gap: var(--spacing-md);
+  max-width: 400px;
   width: 100%;
+  background-color: var(--surface-color);
+  padding: var(--spacing-xl);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color);
 }
 
 .InputContainer input {
   width: 100%;
-  height: 40px;
-  border: 2px solid #43a047;
-  border-radius: 5px;
-  padding: 5px;
-  font-size: 16px;
-  outline: none; /* Remove the input outline on focus */
+  height: 50px;
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  font-size: var(--font-size-md);
+  transition: all 0.3s ease;
+  background-color: var(--surface-color);
+  color: var(--text-primary);
+}
+
+.InputContainer input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+.InputContainer input::placeholder {
+  color: var(--text-secondary);
 }
 
 .InputContainer button {
   width: 100%;
   height: 50px;
   border: none;
-  border-radius: 5px;
-  padding: 5px;
-  font-size: 16px;
-  background: #43a047;
-  color: #fff;
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  background-color: var(--primary-color);
+  color: white;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: all 0.3s ease;
 }
 
 .InputContainer button:hover {
-  background: #2e7d32;
+  background-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.InputContainer button:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .ChatContainer {
+    padding: var(--spacing-md);
+  }
+  
+  .ChatContainer h3 {
+    font-size: var(--font-size-xl);
+  }
+  
+  .InputContainer {
+    max-width: 100%;
+    margin: 0 var(--spacing-md);
+  }
 }
 
