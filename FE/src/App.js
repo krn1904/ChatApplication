@@ -9,9 +9,10 @@ function App() {
   const [username, setUsername] = useState("");
   const [room, setRoom] = useState("");
   const [showChat, setShowChat] = useState(false);
-  const [server, setWebsocketServer] = useState({});
+  const [server, setWebsocketServer] = useState(null);
   const [isBackendReady, setIsBackendReady] = useState(false);
   const [isConnecting, setIsConnecting] = useState(true);
+  const [pendingJoin, setPendingJoin] = useState(null);
 
     const joinRoom = () => {
       if (username !== "" && room !== "") {
@@ -20,13 +21,14 @@ function App() {
           user : username,
           room : room,
         }
-        server.send(JSON.stringify(initConnection));
-        setShowChat(true);
-        // new
-        // const message = JSON.stringify({ event: 'join_room', data:  room  });
-
-        // Send the message to the WebSocket server
-        //  server.send(message);
+        // If socket is open, send immediately; otherwise queue until open
+        if (server && server.readyState === WebSocket.OPEN) {
+          server.send(JSON.stringify(initConnection));
+          setShowChat(true);
+        } else {
+          console.warn('Socket not ready yet, queuing join...');
+          setPendingJoin(initConnection);
+        }
       }
     };
 
@@ -34,7 +36,7 @@ function App() {
       const initializeApp = async () => {
         setIsConnecting(true);
         
-        // Wake up backend first
+        // Wake up backend first (non-blocking UI)
         console.log('Waking up backend...');
         const backendReady = await wakeUpService.ensureBackendReady();
         setIsBackendReady(backendReady);
@@ -47,6 +49,12 @@ function App() {
           ws.addEventListener('open', () => {
             console.log('WebSocket connection established');
             setIsConnecting(false);
+            // If user attempted to join before socket was ready, send now
+            if (pendingJoin) {
+              ws.send(JSON.stringify(pendingJoin));
+              setPendingJoin(null);
+              setShowChat(true);
+            }
           });
           
           ws.addEventListener('error', (error) => {
@@ -54,9 +62,11 @@ function App() {
             setIsConnecting(false);
           });
           
-          // Return cleanup function
+          // Note: cleanup is intentionally minimal to avoid UI disruption
+          // Closing socket on unmount
+          // (React ignores cleanup returned within async fn, but keep for clarity)
           return () => {
-            ws.close();
+            try { ws.close(); } catch {}
             console.log('WebSocket connection closed');
           };
         } else {
@@ -66,8 +76,9 @@ function App() {
       };
       
       initializeApp();
-  }, []); // Empty dependency array ensures this effect runs only once
+  }, [pendingJoin]);
   
+    // Full-screen loading screen (keep)
     if (isConnecting) {
       return (
         <div className="App">
@@ -79,21 +90,29 @@ function App() {
         </div>
       );
     }
-
-    if (!isBackendReady) {
-      return (
-        <div className="App">
-          <div className="ChatContainer">
-            <h3>Connection Error</h3>
-            <p>Unable to connect to chat services. Please refresh the page to try again.</p>
-            <button onClick={() => window.location.reload()}>Refresh</button>
-          </div>
-        </div>
-      );
-    }
+  
+    // Lightweight banner (keep) for post-load errors only
+    const Banner = () => (
+      <div className="SystemBanner" style={{
+        background: '#fff3cd',
+        color: '#664d03',
+        border: '1px solid #ffecb5',
+        borderRadius: 6,
+        padding: '8px 12px',
+        margin: '12px',
+        fontSize: 14
+      }}>
+        {!isBackendReady && (
+          <span>
+            Unable to reach chat services. <button onClick={() => window.location.reload()}>Retry</button>
+          </span>
+        )}
+      </div>
+    );
   
     return (
       <div className="App">
+        {!isBackendReady && <Banner />}
         {!showChat ? (
           <div className="ChatContainer">
             <h3>Welcome to the Chat App</h3>

@@ -12,11 +12,16 @@ const port = process.env.PORT || 8001
 const server = http.createServer(app);
 const wss = new WebSocket.Server({server});
 
-app.use(cors()); // Enable CORS for all routes
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type']
+})); // Enable CORS for all routes
 app.use(express.json()); // json body parser
 
 // Health check endpoint
 app.get('/health', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
   res.status(200).json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
