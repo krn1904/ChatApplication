@@ -1,60 +1,118 @@
-import React, { useEffect, useState } from "react";
-import "./LoginPage.css";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "../../api";
-import io from "socket.io-client";
-import Config  from "../../config.json";
+import "./LoginPage.css";
+import TopNavBar from "../TopnavBar/TopNavBar";
 
-const LoginPage = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+function LoginPage() {
   const navigate = useNavigate();
+  const [isLogin, setIsLogin] = useState(true);
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    room_id: ''
+  });
 
-  useEffect(() => {
-    // Socket Connection
-    const socket = io(Config.BaseURL + Config.port, { transports: ["websocket"] });
-    socket.on("connect", () => {
-      console.log("connected to backend");
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
     });
-  }, []);
-
-  const handleEmailChange = (e) => {
-    setEmail(e.target.value);
   };
 
-  const handlePasswordChange = (e) => {
-    setPassword(e.target.value);
-  };
-
-  const handleLogin = async () => {
-    try {
-      await API.createUser(email, password);
-    } catch (error) {
-      console.log("🚀 ~ file: LoginPage.js:24 ~ handleLogin ~ error:", error);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (isLogin) {
+      navigate("/chat", { state: { username: formData.username, room_id: formData.room_id } });
+    } else {
+      console.log('Signup data:', formData);
     }
-    navigate("/Home");
   };
 
   return (
-    <div className="login-container">
-      <h2>Login</h2>
-      <div className="login-form">
-        <div className="input-container">
-          <label>Email:</label>
-          <input type="email" value={email} onChange={handleEmailChange} />
+    <div className="page-wrapper">
+      <TopNavBar hideConnectionStatus={true} hideHamburger={true} />
+      <div className="home-container">
+        <div className="home-content auth-form">
+          <h1>{isLogin ? "Welcome Back" : "Create Account"}</h1>
+          <p>{isLogin ? "Login to continue chatting" : "Sign up to start chatting"}</p>
+          
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <input
+                type="text"
+                name="username"
+                placeholder="Username"
+                value={formData.username}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            {isLogin && (
+              <div className="form-group">
+                <input
+                  type="text"
+                  name="room_id"
+                  placeholder="Room ID"
+                  value={formData.room_id}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            )}
+
+            {!isLogin && (
+              <>
+                <div className="form-group">
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="Email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <input
+                    type="password"
+                    name="password"
+                    placeholder="Password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <input
+                    type="password"
+                    name="confirmPassword"
+                    placeholder="Confirm Password"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </>
+            )}
+
+            <button type="submit" className="auth-button">
+              {isLogin ? "Login" : "Sign Up"}
+            </button>
+          </form>
+
+          <p className="switch-auth">
+            {isLogin ? "Don't have an account? " : "Already have an account? "}
+            <span onClick={() => setIsLogin(!isLogin)}>
+              {isLogin ? "Sign Up" : "Login"}
+            </span>
+          </p>
         </div>
-        <div className="input-container">
-          <label>Password:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={handlePasswordChange}
-          />
-        </div>
-        <button onClick={handleLogin}>Login</button>
       </div>
     </div>
   );
-};
+}
 
 export default LoginPage;

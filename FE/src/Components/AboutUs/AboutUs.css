@@ -1,0 +1,241 @@
+/* Reset and base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  overflow-y: auto !important;
+}
+
+.about-container {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  padding-top: 60px; /* Height of the fixed navbar */
+}
+
+.about-wrapper {
+  width: 100%;
+  min-height: calc(100vh - 60px);
+  overflow-y: auto;
+}
+
+.about-hero {
+  background: linear-gradient(135deg, #00a884 0%, #004d40 100%);
+  color: white;
+  text-align: center;
+  padding: 60px 20px;
+  margin-bottom: 40px;
+}
+
+.about-hero h1 {
+  font-size: clamp(2.5em, 5vw, 3.5em);
+  margin-bottom: 20px;
+  animation: fadeInUp 0.8s ease;
+}
+
+.hero-subtitle {
+  font-size: clamp(1.2em, 3vw, 1.5em);
+  opacity: 0.9;
+  animation: fadeInUp 0.8s ease 0.2s both;
+}
+
+.about-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px 40px;
+}
+
+section {
+  margin-bottom: 60px;
+  animation: fadeInUp 0.8s ease forwards;
+  opacity: 0;
+}
+
+section:nth-child(2) { animation-delay: 0.2s; }
+section:nth-child(3) { animation-delay: 0.4s; }
+section:nth-child(4) { animation-delay: 0.6s; }
+
+section h2 {
+  color: #2c3e50;
+  font-size: 2.2em;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  padding: 20px 0;
+}
+
+.feature-card {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: all 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.feature-icon {
+  font-size: 2.5em;
+  margin-bottom: 15px;
+  transition: transform 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+  transform: scale(1.1);
+}
+
+.feature-card h3 {
+  color: #2c3e50;
+  margin-bottom: 10px;
+}
+
+.feature-card p {
+  color: #666;
+  line-height: 1.6;
+}
+
+.tech-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  justify-content: center;
+}
+
+.tech-category {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.tech-category h3 {
+  color: #2c3e50;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.tech-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.tech-item {
+  background: #f8f9fa;
+  padding: 10px 20px;
+  border-radius: 25px;
+  color: #2c3e50;
+  font-size: 0.9em;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.tech-item:hover {
+  background: #00a884;
+  color: white;
+  transform: scale(1.05);
+}
+
+.contact-section {
+  text-align: center;
+  background: white;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.contact-content {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.contact-button {
+  display: inline-block;
+  background: #00a884;
+  color: white;
+  padding: 15px 40px;
+  border-radius: 30px;
+  text-decoration: none;
+  margin-top: 20px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.contact-button:hover {
+  background: #008f72;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 168, 132, 0.3);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Update the scrollbar styles */
+/* Default state - hidden/subtle scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 20px;
+}
+
+/* Show scrollbar on hover */
+.about-wrapper:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 168, 132, 0.2);
+}
+
+.about-wrapper:hover::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 168, 132, 0.5);
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.about-wrapper:hover {
+  scrollbar-color: rgba(0, 168, 132, 0.2) transparent;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .about-hero {
+    padding: 40px 20px;
+  }
+}
