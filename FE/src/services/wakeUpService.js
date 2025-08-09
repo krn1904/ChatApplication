@@ -3,7 +3,7 @@ const config = require('../config.js');
 class WakeUpService {
   constructor() {
     this.backendUrl = config.BackendHTTP;
-    this.maxRetries = 3;
+    this.maxRetries = 10; // increased to cover cold starts
     this.retryDelay = 2000; // 2 seconds
   }
 
@@ -12,11 +12,9 @@ class WakeUpService {
     
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
       try {
+        // Remove custom headers to avoid CORS preflight (OPTIONS)
         const response = await fetch(`${this.backendUrl}/health`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          method: 'GET'
         });
 
         if (response.ok) {
@@ -24,7 +22,7 @@ class WakeUpService {
           return true;
         }
       } catch (error) {
-        console.warn(`Wake-up attempt ${attempt}/${this.maxRetries} failed:`, error.message);
+        console.warn(`Wake-up attempt ${attempt}/${this.maxRetries} failed:`, error?.message || error);
         
         if (attempt < this.maxRetries) {
           await this.delay(this.retryDelay * attempt); // Exponential backoff
