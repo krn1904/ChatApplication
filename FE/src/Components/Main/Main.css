@@ -4,143 +4,139 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: var(--font-family);
-  overflow: hidden;
+  font-family: "Arial", sans-serif;
+  overflow: hidden; /* Prevent body from scrolling */
 }
 
 .app {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 80px);
-  overflow-y: hidden;
-  background-color: var(--background-color);
+  height: calc(
+    100vh - 100px
+  ); /* Adjusted height to accommodate the top navbar */
+  overflow-y: hidden; /* Hide overflow to prevent scrolling within the chat box */
+  background: blanchedalmond;
+}
+
+.top-navbar {
+  background-color: #343a40;
+  padding: 10px 0;
+  color: white;
+}
+
+.container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.navbar-brand {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.nav {
+  list-style: none;
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-item {
+  margin-right: 15px;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: white;
+  transition: color 0.3s;
+}
+
+.nav-link:hover {
+  color: lightgray;
 }
 
 /* Message Box Container */
 .message-box-container {
   flex: 1;
   overflow-y: auto;
-  height: 100%;
+  height: 100%; /* Use 100% height to fill the available space */
   display: flex;
   flex-direction: column-reverse;
   place-content: flex-start;
-  padding: var(--spacing-md);
 }
 
 .message-box {
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: 10px 8px;
   display: flex;
-  flex-direction: column;
+  flex-direction: column; /* Keep the column direction */
 }
 
 /* Message Styles */
 .message {
-  max-width: 70%;
-  margin-bottom: var(--spacing-sm);
-  padding: var(--spacing-md);
-  border-radius: var(--border-radius-lg);
-  font-size: var(--font-size-md);
-  line-height: 1.4;
-  word-wrap: break-word;
-  box-shadow: var(--shadow-sm);
+  max-width: fit-content;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: #4caf50;
+  color: #fff;
 }
 
 .sent {
   align-self: flex-end;
 }
 
-.sent .message {
-  background-color: var(--primary-color);
-  color: white;
-  border-bottom-right-radius: var(--border-radius-sm);
+.sender {
+  justify-content: flex-start;
+  margin-left: 5px;
 }
 
 .receive {
   align-self: flex-start;
 }
-
-.receive .message {
-  background-color: var(--surface-color);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-bottom-left-radius: var(--border-radius-sm);
+.receiver {
+  justify-content: flex-end;
+  margin-left: 5px;
 }
 
 /* Sender Name Styles */
 .sender-name {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  margin-top: var(--spacing-xs);
+  font-size: 9px;
+  color: #555;
+  margin-top: 5px;
   display: flex;
-  font-weight: 500;
-}
-
-.sender {
-  justify-content: flex-start;
-  margin-left: var(--spacing-sm);
-}
-
-.receiver {
-  justify-content: flex-end;
-  margin-right: var(--spacing-sm);
+  flex-direction: row-reverse;
 }
 
 /* Input Box */
 .input-box {
   display: flex;
   align-items: center;
-  padding: var(--spacing-md);
+  padding: 10px;
   position: fixed;
   bottom: 0;
   width: 100%;
-  background-color: var(--surface-color);
-  border-top: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
-  gap: var(--spacing-md);
+  background: antiquewhite;
 }
 
-.input-box input {
+input {
   flex: 1;
-  padding: var(--spacing-md);
-  border: 2px solid var(--border-color);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-md);
-  transition: all 0.3s ease;
-  background-color: var(--surface-color);
-  color: var(--text-primary);
+  padding: 8px;
+  margin-right: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 95%;
 }
 
-.input-box input:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
-}
-
-.input-box input::placeholder {
-  color: var(--text-secondary);
-}
-
-.input-box button {
-  padding: var(--spacing-md) var(--spacing-lg);
-  background-color: var(--primary-color);
-  color: white;
+button {
+  padding: 8px;
+  background-color: #4caf50;
+  color: #fff;
   border: none;
-  border-radius: var(--border-radius-md);
+  border-radius: 4px;
   cursor: pointer;
-  font-size: var(--font-size-md);
-  font-weight: 600;
-  transition: all 0.3s ease;
-  min-width: 80px;
-}
-
-.input-box button:hover {
-  background-color: var(--primary-dark);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
-}
-
-.input-box button:active {
-  transform: translateY(0);
+  width: 8%;
 }
 
 /* Scrollbar Styling */
