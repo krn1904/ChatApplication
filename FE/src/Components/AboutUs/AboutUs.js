@@ -5,9 +5,6 @@ import { useLocation } from 'react-router-dom';
 
 const AboutUs = () => {
   const location = useLocation();
-  
-  // If coming from chat, we'll have the state
-  // If coming directly to About Us, we won't have state (and that's okay)
   const hasState = location.state?.username && location.state?.room_id;
 
   return (
@@ -23,10 +20,7 @@ const AboutUs = () => {
           <section className="mission-section">
             <div className="section-content">
               <h2>Our Mission</h2>
-              <p>
-                To provide a seamless and secure communication platform that connects people 
-                in real-time, making conversations more accessible and enjoyable.
-              </p>
+              <p>To provide a seamless and secure communication platform that connects people in real-time, making conversations more accessible and enjoyable.</p>
             </div>
           </section>
 
@@ -81,13 +75,9 @@ const AboutUs = () => {
           <section className="contact-section">
             <h2>Get in Touch</h2>
             <div className="contact-content">
-              <p>
-                Have questions or suggestions? We'd love to hear from you!
-              </p>
+              <p>Have questions or suggestions? We'd love to hear from you!</p>
               <div className="contact-info">
-                <a href="mailto:support@chatapp.com" className="contact-button">
-                  Contact Us
-                </a>
+                <a href="mailto:support@chatapp.com" className="contact-button">Contact Us</a>
               </div>
             </div>
           </section>
@@ -97,4 +87,4 @@ const AboutUs = () => {
   );
 };
 
-export default AboutUs; 
+export default AboutUs;

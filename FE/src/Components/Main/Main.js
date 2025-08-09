@@ -11,20 +11,17 @@ function Main() {
   const navigate = useNavigate();
   const { socket, isConnected, sendMessage } = useWebSocket();
 
-  // First useEffect - check for valid state
   useEffect(() => {
     if (!locationData.state?.username || !locationData.state?.room_id) {
       navigate('/', { replace: true });
     }
   }, [locationData.state, navigate]);
 
-  // Second useEffect - socket event handlers
   useEffect(() => {
     if (!locationData.state?.username || !locationData.state?.room_id || !socket || !isConnected) return;
 
     const { username, room_id } = locationData.state;
 
-    // Join room when component mounts
     const joinMessage = {
       method: 'join-room',
       username,
@@ -32,21 +29,16 @@ function Main() {
     };
     sendMessage(joinMessage);
 
-    // Set up message handler
     const handleMessage = (event) => {
       try {
         const receivedMessage = JSON.parse(event.data);
-        console.log('Received message:', receivedMessage);
-
         if (receivedMessage.method === 'new-message') {
           setChat(prevChat => {
-            // Check if message already exists to prevent duplicates
             const messageExists = prevChat.some(msg => 
               msg.message === receivedMessage.message && 
               msg.author === receivedMessage.author &&
               msg.timestamp === receivedMessage.timestamp
             );
-            
             if (!messageExists) {
               return [...prevChat, receivedMessage];
             }
@@ -60,7 +52,6 @@ function Main() {
 
     socket.addEventListener('message', handleMessage);
 
-    // Cleanup on unmount
     return () => {
       socket.removeEventListener('message', handleMessage);
       const leaveMessage = {
@@ -94,11 +85,7 @@ function Main() {
           minute: '2-digit' 
         })
       };
-      
-      // Add message to chat immediately for the sender
       setChat(prevChat => [...prevChat, message]);
-      
-      // Send message to others
       sendMessage(message);
       setMessageInput("");
     }

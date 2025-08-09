@@ -26,7 +26,6 @@ function LoginPage() {
     if (isLogin) {
       navigate("/chat", { state: { username: formData.username, room_id: formData.room_id } });
     } else {
-      // Handle signup logic here
       console.log('Signup data:', formData);
     }
   };
