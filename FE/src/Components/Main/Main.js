@@ -85,7 +85,7 @@ function Main() {
           minute: '2-digit' 
         })
       };
-      setChat(prevChat => [...prevChat, message]);
+      // Don't add locally - let server broadcast it back
       sendMessage(message);
       setMessageInput("");
     }
