@@ -2,35 +2,55 @@ import config from './config'
 
 class API {
     constructor(baseUrl) {
-      this.baseUrl = config.BaseURL + config.port;
+      this.baseUrl = config.BackendHTTP;
     }
   
     async sendRequest(url, method, data = {}) {
       try {
-        const response = await fetch(`${this.baseUrl}${url}`, {
+        const options = {
           method,
           headers: {
             'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-        });
+          }
+        };
+
+        if (method !== 'GET') {
+          options.body = JSON.stringify(data);
+        }
+
+        const response = await fetch(`${this.baseUrl}${url}`, options);
   
         const responseData = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(responseData.error || 'Request failed');
+        }
+        
         return responseData;
       } catch (error) {
         console.error('API Request Error:', error);
-        throw new Error('An error occurred during the API request.');
+        throw error;
       }
     }
   
-    async createUser(email, password, name) {
-      try {
-        const data = await this.sendRequest('/createUser', 'POST', { email, password, name });
-        return data;
-      } catch (error) {
-        console.error('Error creating user:', error);
-        throw new Error('An error occurred while creating the user.');
-      }
+    async register(username, email, password, name) {
+      return await this.sendRequest('/api/auth/register', 'POST', { 
+        username, 
+        email, 
+        password, 
+        name 
+      });
+    }
+
+    async login(username, password) {
+      return await this.sendRequest('/api/auth/login', 'POST', { 
+        username, 
+        password 
+      });
+    }
+
+    async getAllUsers() {
+      return await this.sendRequest('/api/users', 'GET');
     }
   }
   
