@@ -2,10 +2,13 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./LoginPage.css";
 import TopNavBar from "../TopnavBar/TopNavBar";
+import api from "../../api";
 
 function LoginPage() {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -15,18 +18,71 @@ function LoginPage() {
   });
 
   const handleChange = (e) => {
+    setError('');
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isLogin) {
-      navigate("/chat", { state: { username: formData.username, room_id: formData.room_id } });
-    } else {
-      console.log('Signup data:', formData);
+    setError('');
+    setLoading(true);
+
+    try {
+      if (isLogin) {
+        // Login
+        if (!formData.username || !formData.room_id) {
+          setError('Username and Room ID are required');
+          setLoading(false);
+          return;
+        }
+        
+        // For now, just navigate to chat (simplified login)
+        navigate("/chat", { 
+          state: { 
+            username: formData.username, 
+            room_id: formData.room_id 
+          } 
+        });
+      } else {
+        // Signup
+        if (!formData.username || !formData.email || !formData.password) {
+          setError('All fields are required');
+          setLoading(false);
+          return;
+        }
+
+        if (formData.password !== formData.confirmPassword) {
+          setError('Passwords do not match');
+          setLoading(false);
+          return;
+        }
+
+        const response = await api.register(
+          formData.username,
+          formData.email,
+          formData.password,
+          formData.username
+        );
+
+        console.log('Registration successful:', response);
+        
+        // Auto-login after signup
+        setIsLogin(true);
+        setError('');
+        setFormData({
+          ...formData,
+          email: '',
+          password: '',
+          confirmPassword: ''
+        });
+      }
+    } catch (err) {
+      setError(err.message || 'An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -37,6 +93,8 @@ function LoginPage() {
         <div className="home-content auth-form">
           <h1>{isLogin ? "Welcome Back" : "Create Account"}</h1>
           <p>{isLogin ? "Login to continue chatting" : "Sign up to start chatting"}</p>
+          
+          {error && <div className="error-message">{error}</div>}
           
           <form onSubmit={handleSubmit}>
             <div className="form-group">
@@ -98,14 +156,17 @@ function LoginPage() {
               </>
             )}
 
-            <button type="submit" className="auth-button">
-              {isLogin ? "Login" : "Sign Up"}
+            <button type="submit" className="auth-button" disabled={loading}>
+              {loading ? (isLogin ? "Logging in..." : "Signing up...") : (isLogin ? "Login" : "Sign Up")}
             </button>
           </form>
 
           <p className="switch-auth">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
-            <span onClick={() => setIsLogin(!isLogin)}>
+            <span onClick={() => {
+              setIsLogin(!isLogin);
+              setError('');
+            }}>
               {isLogin ? "Sign Up" : "Login"}
             </span>
           </p>
