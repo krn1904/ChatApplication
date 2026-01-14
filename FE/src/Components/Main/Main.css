@@ -1,7 +1,7 @@
 /* Import the unified theme */
 @import url('../../Styles/theme.css');
 
-body {
+.main-page-body {
   margin: 0;
   padding: 0;
   font-family: "Arial", sans-serif;
@@ -15,6 +15,7 @@ body {
   height: 100vh;
   background: var(--background-gradient);
   position: relative;
+  overflow: hidden;
 }
 
 .top-navbar {
