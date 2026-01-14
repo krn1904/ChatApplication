@@ -9,7 +9,11 @@ const AboutUs = () => {
 
   return (
     <div className="about-container">
-      <TopNavBar showBackButton={hasState} />
+      <TopNavBar 
+        showBackButton={hasState} 
+        hideConnectionStatus={!hasState}
+        hideHamburger={!hasState}
+      />
       <div className="about-wrapper">
         <div className="about-hero">
           <h1>Welcome to Chat App</h1>

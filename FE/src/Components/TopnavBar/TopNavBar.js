@@ -78,7 +78,7 @@ const TopNavBar = ({ hideConnectionStatus = false, hideHamburger = false, showBa
               <li className="nav-item">
                 <Link to="/about" className="nav-link" state={location.state}>About Us</Link>
               </li>
-              {!hideConnectionStatus && (
+              {!hideConnectionStatus ? (
                 <li className="nav-item">
                   <button 
                     className="logout-button" 
@@ -86,6 +86,10 @@ const TopNavBar = ({ hideConnectionStatus = false, hideHamburger = false, showBa
                   >
                     Logout
                   </button>
+                </li>
+              ) : (
+                <li className="nav-item">
+                  <Link to="/login" className="nav-link">Login</Link>
                 </li>
               )}
             </ul>

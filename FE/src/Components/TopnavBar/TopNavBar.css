@@ -26,25 +26,22 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 1rem;
-    width: 100%;
-  }
-  
-  .left-section {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-  
-  .right-section {
-    display: flex;
-    align-items: center;
-    gap: 1.25rem;
-  }
-  
-  /* Navbar Brand */
-  .navbar-brand {
-    font-size: 1.25rem;
+  padding: 0 1.5rem;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.left-section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.right-section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
     font-weight: 600;
     color: var(--text-primary);
     letter-spacing: 0.5px;
@@ -98,10 +95,11 @@
     margin: 0;
     padding: 0;
     align-items: center;
+    gap: 0.5rem;
   }
   
   .nav-item {
-    margin-right: 15px;
+    margin: 0;
   }
   
   .nav-link {
@@ -110,11 +108,13 @@
     font-size: 0.875rem;
     font-weight: 500;
     transition: color 0.2s ease;
-    padding: 0.4rem 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-md);
   }
   
   .nav-link:hover {
     color: var(--text-primary);
+    background: var(--surface-color);
   }
   
   .hamburger-menu {
@@ -197,47 +197,68 @@
   }
   
   .theme-toggle {
-    background: transparent;
+    background: var(--surface-color);
     border: 1px solid var(--border-color);
     color: var(--text-secondary);
-    padding: 0.4rem;
-    border-radius: 4px;
+    padding: 0.5rem;
+    border-radius: var(--radius-md);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
+    transition: all var(--transition-normal);
+    width: 36px;
+    height: 36px;
   }
   
   .theme-toggle:hover {
-    background: var(--surface-color);
-    border-color: var(--border-color);
+    background: var(--surface-color-hover);
+    border-color: var(--primary);
     color: var(--text-primary);
+    transform: scale(1.05);
   }
   
   .theme-toggle svg {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     stroke: currentColor;
+    fill: none;
     stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
   
   .logout-button {
-    background: transparent;
+    background: var(--surface-color);
     border: 1px solid var(--border-color);
     color: var(--text-secondary);
-    padding: 0.4rem 0.75rem;
-    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
     cursor: pointer;
     font-size: 0.875rem;
     font-weight: 500;
-    transition: all 0.2s ease;
+    transition: all var(--transition-normal);
+    font-family: inherit;
   }
   
   .logout-button:hover {
-    background: var(--surface-color);
+    background: rgba(239, 68, 68, 0.1);
     border-color: var(--error-color);
     color: var(--error-color);
+    transform: translateY(-1px);
+  }
+
+  .signup-btn {
+    background: var(--primary-gradient);
+    color: white !important;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-normal);
+  }
+
+  .signup-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
   }
   
   @media (max-width: 768px) {
