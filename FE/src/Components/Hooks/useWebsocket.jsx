@@ -10,18 +10,37 @@ export const WebSocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isBackendReady, setIsBackendReady] = useState(false);
-  const [reconnectAttempts, setReconnectAttempts] = useState(0);
+  const reconnectAttemptsRef = useRef(0);
+  const reconnectTimeoutRef = useRef(null);
   const messageQueueRef = useRef([]);
+  const isConnectingRef = useRef(false);
   const MAX_RECONNECT_ATTEMPTS = 5;
   const RECONNECT_INTERVAL = 3000;
 
   const connectWebSocket = useCallback(async () => {
+    // Prevent multiple simultaneous connection attempts
+    if (isConnectingRef.current) {
+      return;
+    }
+    
+    if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
+      console.error('Max reconnection attempts reached');
+      return;
+    }
+
+    isConnectingRef.current = true;
+
     try {
       // Ensure backend HTTP is awake before opening WS
       const ready = await wakeUpService.ensureBackendReady();
       setIsBackendReady(ready);
       if (!ready) {
-        console.error('Backend not ready, skipping WS connect');
+        console.error('Backend not ready, will retry...');
+        isConnectingRef.current = false;
+        reconnectAttemptsRef.current++;
+        reconnectTimeoutRef.current = setTimeout(() => {
+          connectWebSocket();
+        }, RECONNECT_INTERVAL);
         return;
       }
 
@@ -30,7 +49,8 @@ export const WebSocketProvider = ({ children }) => {
       ws.onopen = () => {
         console.log('WebSocket Connected');
         setIsConnected(true);
-        setReconnectAttempts(0);
+        reconnectAttemptsRef.current = 0;
+        isConnectingRef.current = false;
         setSocket(ws);
         // Flush any queued messages
         try {
@@ -47,29 +67,53 @@ export const WebSocketProvider = ({ children }) => {
         console.log('WebSocket Disconnected');
         setIsConnected(false);
         setSocket(null);
-        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-          setTimeout(() => {
-            setReconnectAttempts(prev => prev + 1);
+        isConnectingRef.current = false;
+        
+        if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
+          reconnectAttemptsRef.current++;
+          console.log(`Reconnecting... Attempt ${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS}`);
+          reconnectTimeoutRef.current = setTimeout(() => {
             connectWebSocket();
           }, RECONNECT_INTERVAL);
+        } else {
+          console.error('Max reconnection attempts reached');
         }
       };
 
       ws.onerror = (error) => {
         console.error('WebSocket Error:', error);
+        isConnectingRef.current = false;
       };
     } catch (error) {
       console.error('WebSocket Connection Error:', error);
+      isConnectingRef.current = false;
+      reconnectAttemptsRef.current++;
+      if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
+        reconnectTimeoutRef.current = setTimeout(() => {
+          connectWebSocket();
+        }, RECONNECT_INTERVAL);
+      }
     }
-  }, [reconnectAttempts]);
+  }, []);
 
   useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      if (!isMounted) return;
-      await connectWebSocket();
-    })();
-    return () => { isMounted = false; if (socket) { try { socket.close(); } catch {} } };
+    connectWebSocket();
+    
+    return () => { 
+      // Clear reconnect timeout
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+      // Close socket
+      if (socket) { 
+        try { 
+          socket.close(); 
+        } catch (e) {
+          console.error('Error closing socket:', e);
+        } 
+      }
+      isConnectingRef.current = false;
+    };
   }, [connectWebSocket]);
 
   const sendMessage = useCallback((message) => {
