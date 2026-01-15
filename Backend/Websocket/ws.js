@@ -44,9 +44,9 @@ api.set("send-message", async (req, clients, ws) => {
     // return room_messageList
 })
 
-api.set("joinRoom", async (req, clients, websocketConnection) => {
+api.set("join-room", async (req, clients, websocketConnection) => {
     let roomId = req.room;
-    let userId = req.user;
+    let userId = req.username || req.user;
 
     const websocketConnectionObj = { websocketConnection }
 
@@ -75,18 +75,33 @@ api.set("get-messages", async (req) => {
     return roomMessages.get(roomId) || [];
 });
 
+api.set("leave-room", async (req, clients, websocketConnection) => {
+    let roomId = req.room;
+    let userId = req.username;
+
+    if (rooms.has(roomId)) {
+        const roomUsers = rooms.get(roomId);
+        // Remove user from room
+        roomUsers.forEach(user => {
+            if (user.userId === userId) {
+                roomUsers.delete(user);
+            }
+        });
+        console.log(`User ${userId} left room ${roomId}`);
+    }
+});
+
 // Function to send a message to all users in a room
 function sendMessageToRoom(userId, message, clients, ws) {
 
     clients.forEach(function each(client) {
-        // console.log(client.WebSocket == ws)
           if (client.readyState === WebSocket.OPEN) {
+            const now = new Date();
             const MsgObj = {
-                method: 'send-message',
+                method: 'new-message',
                 author: userId,
                 message: message,
-                // room: roomId,
-                timestamp: new Date().getHours() + new Date().getMinutes(),
+                timestamp: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
               };
             client.send(JSON.stringify(MsgObj));
           }
