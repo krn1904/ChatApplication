@@ -108,6 +108,10 @@ const CreateUser = async (req, res) => {
         { expiresIn: config.JWT_EXPIRES_IN }
       );
 
+      // Update lastLogin timestamp
+      user.lastLogin = new Date();
+      await user.save();
+
       res.json({
         message: 'Login successful',
         token,
