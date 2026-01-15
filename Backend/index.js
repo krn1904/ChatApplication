@@ -7,6 +7,7 @@ const KeepAlive = require('./keepAlive');
 const config = require('./config');
 const { connectDB, getConnectionStatus } = require('./database/connection');
 const { CreateUser, AllUsers, LoginUser } = require('./UserController/Users');
+const { authMiddleware } = require('./middleware/auth');
 
 // Code changed to websocket
 const app = express();
@@ -60,10 +61,20 @@ app.get('/', (req, res) => {
   });
 });
 
-// Authentication routes
+// Authentication routes (public)
 app.post('/api/auth/register', CreateUser);
 app.post('/api/auth/login', LoginUser);
-app.get('/api/users', AllUsers);
+
+// Protected routes (require JWT token)
+app.get('/api/users', authMiddleware, AllUsers);
+
+// Example: Get current user profile (protected)
+app.get('/api/auth/me', authMiddleware, (req, res) => {
+  res.json({
+    message: 'Authenticated user',
+    user: req.user
+  });
+});
 
 wss.on("connection",(ws) => initConnection(ws))
 
