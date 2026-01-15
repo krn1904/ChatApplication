@@ -1,6 +1,8 @@
 
 const User = require('../Tables/User')
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const config = require('../config');
 
 const CreateUser = async (req, res) => {
     try {
@@ -34,9 +36,21 @@ const CreateUser = async (req, res) => {
       });
   
       await newUser.save();
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { 
+          userId: newUser.userId, 
+          username: newUser.username,
+          email: newUser.email 
+        },
+        config.JWT_SECRET,
+        { expiresIn: config.JWT_EXPIRES_IN }
+      );
   
       res.json({ 
         message: 'User registered successfully',
+        token,
         user: {
           userId: newUser.userId,
           username: newUser.username,
@@ -83,8 +97,20 @@ const CreateUser = async (req, res) => {
         return res.status(401).json({ error: 'Invalid username or password' });
       }
 
+      // Generate JWT token
+      const token = jwt.sign(
+        { 
+          userId: user.userId, 
+          username: user.username,
+          email: user.email 
+        },
+        config.JWT_SECRET,
+        { expiresIn: config.JWT_EXPIRES_IN }
+      );
+
       res.json({
         message: 'Login successful',
+        token,
         user: {
           userId: user.userId,
           username: user.username,
