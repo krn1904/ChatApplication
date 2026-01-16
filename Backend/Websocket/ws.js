@@ -1,9 +1,9 @@
 const { WebSocket } = require('ws');
-const message = require('../Tables/Message.js');
+const Message = require('../Tables/Message.js');
+const User = require('../Tables/User.js');
 
 const api = new Map();
-const rooms = new Map();
-const roomMessages = new Map();
+const rooms = new Map(); // Tracks active WebSocket connections
 
  const handleMessage = async (req, clients, ws) => {
 
@@ -20,48 +20,92 @@ const roomMessages = new Map();
 
 // When message has been send set the message to the respective room.
 api.set("send-message", async (req, clients, ws) => {
-    let message = req.message;
-    let userId = req.author;
-    let roomId = req.room;
+    try {
+        const content = req.message;
+        const author = req.author;
+        const roomId = req.room;
 
-    // Check if the room exists, if not, create a new room
-    if (!roomMessages.has(roomId)) {
-        roomMessages.set(roomId, []);
+        if (!content || !author || !roomId) {
+            console.error('Missing required fields: message, author, or room');
+            return;
+        }
+
+        // Get authorId from username
+        const user = await User.findOne({ username: author });
+        if (!user) {
+            console.error(`User not found: ${author}`);
+            return;
+        }
+
+        // Save message to database
+        const newMessage = new Message({
+            author: author,
+            authorId: user.userId,
+            content: content,
+            roomId: roomId
+        });
+
+        const savedMessage = await newMessage.save();
+        console.log(`✅ Message saved to DB by ${author} in room ${roomId}`);
+
+        // Broadcast message to room
+        sendMessageToRoom(author, content, clients, ws, savedMessage);
+
+        return savedMessage;
+    } catch (error) {
+        console.error('Error saving message:', error);
     }
-
-    // Save the message to the messages array for the room
-    if (message) {
-        roomMessages.get(roomId).push({ userId, message });
-        
-        sendMessageToRoom(userId, message, clients, ws)
-
-        console.log(`Message sent by ${userId} in room ${roomId}: ${message}`);
-    }
-    // return whole map to the room so we can extract data over FE.
-    // console.log(roomMessages)
-    // console.log("rooms",rooms)
-    // const room_messageList = roomMessages.get(roomId);
-    // return room_messageList
 })
 
 api.set("join-room", async (req, clients, websocketConnection) => {
-    let roomId = req.room;
-    let userId = req.username || req.user;
+    try {
+        const roomId = req.room;
+        const userId = req.username || req.user;
 
-    const websocketConnectionObj = { websocketConnection }
+        const websocketConnectionObj = { websocketConnection };
 
-    // If room has not available then set a new one.
-    if (!rooms.has(roomId)) {
-        rooms.set(roomId, new Set());
+        // If room doesn't exist, create a new one
+        if (!rooms.has(roomId)) {
+            rooms.set(roomId, new Set());
+        }
+
+        // Add the user to the room
+        rooms.get(roomId).add({ userId, websocketConnectionObj });
+
+        console.log(`✅ User ${userId} joined room ${roomId}`);
+
+        // Fetch message history from database (last 50 messages)
+        const messageHistory = await Message.find({ roomId: roomId })
+            .sort({ timestamp: -1 })
+            .limit(50)
+            .lean();
+
+        // Reverse to get chronological order (oldest first)
+        messageHistory.reverse();
+
+        // Send message history to the user who just joined
+        if (websocketConnection.readyState === WebSocket.OPEN) {
+            websocketConnection.send(JSON.stringify({
+                method: 'message-history',
+                roomId: roomId,
+                messages: messageHistory.map(msg => ({
+                    messageId: msg.messageId,
+                    author: msg.author,
+                    message: msg.content,
+                    timestamp: msg.timestamp,
+                    formattedTime: new Date(msg.timestamp).toLocaleTimeString([], { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    })
+                })),
+                count: messageHistory.length
+            }));
+
+            console.log(`📤 Sent ${messageHistory.length} messages to ${userId} in room ${roomId}`);
+        }
+    } catch (error) {
+        console.error('Error in join-room:', error);
     }
-
-    // Add the user to the room
-     rooms.get(roomId).add({userId, websocketConnectionObj });
-    
-    // only purpose to disdplay all the
-    //   rooms.forEach((users, roomId) => {
-    //     console.log(`Room ${roomId}: ${Array.from(users).join(', ')}`);
-    //   });
 })
 
 api.set("get-chats", async (req) => {
@@ -69,10 +113,37 @@ api.set("get-chats", async (req) => {
 })
 
 api.set("get-messages", async (req) => {
-    let roomId = req.room;
+    try {
+        const roomId = req.room;
+        const limit = req.limit || 50;
+        const skip = req.skip || 0;
 
-    // Return the messages for the specified room
-    return roomMessages.get(roomId) || [];
+        // Fetch messages from database with pagination
+        const messages = await Message.find({ roomId: roomId })
+            .sort({ timestamp: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean();
+
+        // Reverse to get chronological order
+        messages.reverse();
+
+        console.log(`📥 Fetched ${messages.length} messages for room ${roomId}`);
+
+        return messages.map(msg => ({
+            messageId: msg.messageId,
+            author: msg.author,
+            message: msg.content,
+            timestamp: msg.timestamp,
+            formattedTime: new Date(msg.timestamp).toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            })
+        }));
+    } catch (error) {
+        console.error('Error fetching messages:', error);
+        return [];
+    }
 });
 
 api.set("leave-room", async (req, clients, websocketConnection) => {
@@ -92,16 +163,17 @@ api.set("leave-room", async (req, clients, websocketConnection) => {
 });
 
 // Function to send a message to all users in a room
-function sendMessageToRoom(userId, message, clients, ws) {
+function sendMessageToRoom(userId, message, clients, ws, savedMessage = null) {
 
     clients.forEach(function each(client) {
           if (client.readyState === WebSocket.OPEN) {
-            const now = new Date();
             const MsgObj = {
                 method: 'new-message',
                 author: userId,
                 message: message,
-                timestamp: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                messageId: savedMessage?.messageId || null,
+                timestamp: savedMessage?.timestamp || new Date(),
+                formattedTime: (savedMessage?.timestamp || new Date()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
               };
             client.send(JSON.stringify(MsgObj));
           }
