@@ -1,58 +1,33 @@
+import React, { useEffect } from 'react';
 import "./Styles/App.css";
-import Main from "./Components/Main/Main";
-import { useState } from "react";
-import { io } from "socket.io-client";
-import useWebSocket from 'react-use-websocket'
-const config = require('./config.js');
-   
-// Socket Connection
-const socket = io(config.BaseURL + config.port, { transports: ["websocket"] });
-// console.log(config.BaseURL);
-// console.log(config.port);
-// console.log("port ",process.env.port);
-
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import Main from "./Components/Main/Main.js";
+import Login from "./Components/LoginPage/LoginPage.js";
+import Home from "./Components/Home/Home.js";
+import { WebSocketProvider } from "./Components/Hooks/useWebsocket.jsx";
+import AboutUs from './Components/AboutUs/AboutUs';
+import './Styles/theme.css';
 
 function App() {
-  const [username, setUsername] = useState("");
-  const [room, setRoom] = useState("");
-  const [showChat, setShowChat] = useState(false);
-  
-  // Use WebSocket
-  const { sendMessage: sendNewMessage } = useWebSocket(config.BaseURL + config.port, { onOpen: (e)=> {
-    console.log(`Client connected`,e)
-  },})
-    const joinRoom = () => {
-      if (username !== "" && room !== "") {
-        socket.emit("join_room", room);
-        setShowChat(true);
-      }
-    };
-  
-    return (
-      <div className="App">
-        {!showChat ? (
-          <div className="ChatContainer">
-            <h3>Welcome to the Chat App</h3>
-            <div className="InputContainer">
-              <input
-                type="text"
-                placeholder="Enter your username"
-                onChange={(event) => setUsername(event.target.value)}
-              />
-              <input
-                type="text"
-                placeholder="Enter Room ID"
-                onChange={(event) => setRoom(event.target.value)}
-              />
-              <button onClick={joinRoom}>Join Room</button>
-            </div>
-          </div>
-        ) : (
-          <Main socket={socket} username={username} room_id={room} />
-        )}
-      </div>
+  useEffect(() => {
+    // Set initial theme from localStorage or default to dark
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  }, []);
+
+  return (
+    <Router>
+      <WebSocketProvider>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Login />} />
+          <Route path="/chat" element={<Main />} />
+          <Route path="/about" element={<AboutUs />} />
+        </Routes>
+      </WebSocketProvider>
+    </Router>
   );
 }
 
 export default App;
-
