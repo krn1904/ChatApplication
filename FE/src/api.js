@@ -23,7 +23,11 @@ class API {
         const responseData = await response.json();
         
         if (!response.ok) {
-          throw new Error(responseData.error || 'Request failed');
+          // Create error with status code for proper error handling
+          const error = new Error(responseData.error || 'Request failed');
+          error.status = response.status;
+          error.response = responseData;
+          throw error;
         }
         
         return responseData;

@@ -33,19 +33,47 @@ function LoginPage() {
     try {
       if (isLogin) {
         // Login
-        if (!formData.username || !formData.room_id) {
-          setError('Username and Room ID are required');
+        if (!formData.username || !formData.password || !formData.room_id) {
+          setError('Username, Password, and Room ID are required');
           setLoading(false);
           return;
         }
         
-        // For now, just navigate to chat (simplified login)
-        navigate("/chat", { 
-          state: { 
-            username: formData.username, 
-            room_id: formData.room_id 
-          } 
-        });
+        // Call login API to verify credentials
+        try {
+          const response = await api.login(formData.username, formData.password);
+          
+          // Store JWT token
+          localStorage.setItem('token', response.token);
+          localStorage.setItem('user', JSON.stringify(response.user));
+          
+          console.log('Login successful:', response);
+          
+          // Navigate to chat with authenticated user
+          navigate("/chat", { 
+            state: { 
+              username: formData.username, 
+              room_id: formData.room_id 
+            } 
+          });
+        } catch (loginError) {
+          // Use HTTP status code for accurate error detection
+          if (loginError.status === 404) {
+            // User not found in database
+            setError('User not registered. Please sign up first.');
+          } else if (loginError.status === 401) {
+            // Wrong password
+            setError('Invalid username or password. Please try again.');
+          } else if (loginError.status === 400) {
+            // Missing fields
+            setError('Please enter both username and password.');
+          } else {
+            // Generic error
+            setError(loginError.message || 'An error occurred. Please try again.');
+          }
+          setLoading(false);
+          return;
+        }
       } else {
         // Signup
         if (!formData.username || !formData.email || !formData.password) {
@@ -109,16 +137,28 @@ function LoginPage() {
             </div>
 
             {isLogin && (
-              <div className="form-group">
-                <input
-                  type="text"
-                  name="room_id"
-                  placeholder="Room ID"
-                  value={formData.room_id}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
+              <>
+                <div className="form-group">
+                  <input
+                    type="password"
+                    name="password"
+                    placeholder="Password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <input
+                    type="text"
+                    name="room_id"
+                    placeholder="Room ID"
+                    value={formData.room_id}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </>
             )}
 
             {!isLogin && (

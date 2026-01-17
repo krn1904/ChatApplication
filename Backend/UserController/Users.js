@@ -87,7 +87,7 @@ const CreateUser = async (req, res) => {
       const user = await User.findOne({ username });
       
       if (!user) {
-        return res.status(401).json({ error: 'Invalid username or password' });
+        return res.status(404).json({ error: 'User not found. Please register first.' });
       }
 
       // Compare hashed password using bcrypt

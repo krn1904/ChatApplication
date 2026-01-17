@@ -173,7 +173,19 @@ try {
 
 ### Authentication
 
-Currently, the API uses simple username-based authentication. Future versions will implement JWT tokens.
+The API uses JWT (JSON Web Token) based authentication. Users must register and login to receive a token, which is required for protected endpoints.
+
+**Authentication Flow:**
+1. User registers via `/api/auth/register` → Receives JWT token
+2. User logs in via `/api/auth/login` → Receives JWT token
+3. Include token in `Authorization` header: `Bearer <token>`
+4. Protected routes verify token before granting access
+
+**Security Features:**
+- Password hashing with bcrypt (10 salt rounds)
+- JWT tokens expire after 1 hour
+- Login requires password verification
+- User existence check (returns 404 if not registered)
 
 ### Endpoints
 
