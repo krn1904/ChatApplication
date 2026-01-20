@@ -70,4 +70,4 @@ const Slider = ({ isOpen, onClose }) => {
   );
 };
 
-export default Slider; 
+export default Slider;

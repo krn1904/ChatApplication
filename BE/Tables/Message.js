@@ -1,20 +1,59 @@
 const mongoose = require("mongoose");
+const crypto = require('crypto');
 
-const MessagesEntity = mongoose.Schema({
-  senderId: {
+// Generate UUID v4 using crypto
+function generateUUID() {
+  return crypto.randomUUID();
+}
+
+const MessageSchema = mongoose.Schema({
+  messageId: {
+    type: String,
+    unique: true,
+    default: generateUUID,
+    required: true
+  },
+  author: {
+    type: String,
+    required: true
+  },
+  authorId: {
     type: Number,
+    required: true
   },
-  recieverId:{
-    type: Number,
+  content: {
+    type: String,
+    required: true
   },
-  message:{
-    type: JSON
+  roomId: {
+    type: String,
+    required: true,
+    index: true
   },
-},
-{timestamps : true})
+  timestamp: {
+    type: Date,
+    default: Date.now,
+    index: true
+  },
+  isEdited: {
+    type: Boolean,
+    default: false
+  },
+  editedAt: {
+    type: Date,
+    default: null
+  },
+  isDeleted: {
+    type: Boolean,
+    default: false
+  }
+}, {
+  timestamps: true
+});
 
-const message = mongoose.model("message", MessagesEntity);
+// Create index for efficient querying by room and timestamp
+MessageSchema.index({ roomId: 1, timestamp: -1 });
 
-module.exports = message;
+const Message = mongoose.model("Message", MessageSchema);
 
-//  "mongodb+srv://karanssoni2002:KaranMongo2002@karanscluster.j4ai1as.mongodb.net/"
+module.exports = Message;

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import './TopNavBar.css'; // Import your custom CSS
+import './TopNavBar.css';
 import Slider from '../Slider/Slider';
-import { useWebSocket } from '../Hooks/useWebsocket';
+import { useWebSocket } from '../Hooks/useWebsocket.jsx';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-const TopNavBar = ({ hideConnectionStatus = false, hideHamburger = false }) => {
+const TopNavBar = ({ hideConnectionStatus = false, hideHamburger = false, showBackButton = false }) => {
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
   const { isConnected } = useWebSocket();
@@ -31,7 +31,7 @@ const TopNavBar = ({ hideConnectionStatus = false, hideHamburger = false }) => {
       <nav className="top-navbar">
         <div className="container">
           <div className="left-section">
-            {isAboutPage && hasState ? (
+            {(showBackButton || (isAboutPage && hasState)) ? (
               <Link to="/chat" className="back-link" state={location.state}>
                 <div className="back-button">
                   <span className="back-arrow">←</span>
@@ -58,7 +58,7 @@ const TopNavBar = ({ hideConnectionStatus = false, hideHamburger = false }) => {
             </div>
           </div>
           <div className="right-section">
-            <button className="theme-toggle" onClick={toggleTheme}>
+            <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
               {theme === 'dark' ? (
                 <>
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
@@ -78,7 +78,7 @@ const TopNavBar = ({ hideConnectionStatus = false, hideHamburger = false }) => {
               <li className="nav-item">
                 <Link to="/about" className="nav-link" state={location.state}>About Us</Link>
               </li>
-              {!hideConnectionStatus && (
+              {!hideConnectionStatus ? (
                 <li className="nav-item">
                   <button 
                     className="logout-button" 
@@ -87,23 +87,23 @@ const TopNavBar = ({ hideConnectionStatus = false, hideHamburger = false }) => {
                     Logout
                   </button>
                 </li>
+              ) : (
+                <li className="nav-item">
+                  <Link to="/login" className="nav-link">Login</Link>
+                </li>
               )}
             </ul>
           </div>
         </div>
       </nav>
-      
-      {/* Overlay */}
       {!hideHamburger && (
-        <div 
-          className={`slider-overlay ${isSliderOpen ? 'visible' : ''}`} 
-          onClick={() => setIsSliderOpen(false)}
-        />
-      )}
-      
-      {/* Slider component */}
-      {!hideHamburger && (
-        <Slider isOpen={isSliderOpen} onClose={() => setIsSliderOpen(false)} />
+        <>
+          <Slider isOpen={isSliderOpen} onClose={() => setIsSliderOpen(false)} />
+          <div 
+            className={`slider-overlay ${isSliderOpen ? 'visible' : ''}`} 
+            onClick={() => setIsSliderOpen(false)}
+          />
+        </>
       )}
     </>
   );
