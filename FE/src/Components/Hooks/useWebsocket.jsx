@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useRef, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import config from "../../config.js";
 import wakeUpService from "../../services/wakeUpService";
 
@@ -154,7 +154,7 @@ export const WebSocketProvider = ({ children }) => {
       }
       isConnectingRef.current = false;
     };
-  }, [connectWebSocket, socket]);
+  }, [connectWebSocket]);
 
   const sendMessage = useCallback((message) => {
     if (socket && socket.readyState === WebSocket.OPEN) {
