@@ -6,7 +6,7 @@ const config = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   
   // MongoDB - IMPORTANT: Set MONGODB_URI in .env file
-  MONGODB_URI: process.env.MONGODB_URI || process.env.MongoDb_URL,
+  MONGODB_URI: process.env.MONGODB_URI || process.env.MongoDb_URL || 'mongodb+srv://local-test-user:localtestuser@chatapp.eweag9y.mongodb.net/?appName=chatApp',
   
   // JWT (for Phase 1)
   JWT_SECRET: process.env.JWT_SECRET || 'dev-secret-key-change-in-production',
