@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
+import React, { createContext, useEffect, useRef, useState, useCallback } from 'react';
 import config from "../../config.js";
 import wakeUpService from "../../services/wakeUpService";
 
@@ -155,6 +155,7 @@ export const WebSocketProvider = ({ children }) => {
       }
       isConnectingRef.current = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connectWebSocket]);
 
   const sendMessage = useCallback((message) => {
