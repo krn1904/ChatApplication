@@ -1,10 +1,50 @@
-import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
+import React, { createContext, useEffect, useRef, useState, useCallback } from 'react';
 import config from "../../config.js";
 import wakeUpService from "../../services/wakeUpService";
 
-const WebSocketContext = createContext({ socket: null, isConnected: false, isBackendReady: false, sendMessage: () => {} });
+const WebSocketContext = createContext();
 
-export const useWebSocket = () => useContext(WebSocketContext);
+export const useWebSocket = () => {
+  const [socket, setSocket] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
+
+  useEffect(() => {
+    // Create WebSocket connection
+    const ws = new WebSocket(config.WsURL);
+
+    ws.onopen = () => {
+      console.log('WebSocket Connected');
+      setIsConnected(true);
+      setSocket(ws);
+    };
+
+    ws.onclose = () => {
+      console.log('WebSocket Disconnected');
+      setIsConnected(false);
+      setSocket(null);
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket Error:', error);
+    };
+
+    return () => {
+      if (ws) {
+        ws.close();
+      }
+    };
+  }, []);
+
+  const sendMessage = useCallback((message) => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify(message));
+    } else {
+      console.error('WebSocket is not connected');
+    }
+  }, [socket]);
+
+  return { socket, isConnected, sendMessage };
+};
 
 export const WebSocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
@@ -44,7 +84,7 @@ export const WebSocketProvider = ({ children }) => {
         return;
       }
 
-      const ws = new WebSocket(config.BaseURL);
+      const ws = new WebSocket(config.WsURL);
 
       ws.onopen = () => {
         console.log('WebSocket Connected');
@@ -114,19 +154,27 @@ export const WebSocketProvider = ({ children }) => {
       }
       isConnectingRef.current = false;
     };
-  }, [connectWebSocket]);
+  }, [connectWebSocket, socket]);
 
   const sendMessage = useCallback((message) => {
     if (socket && socket.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify(message));
-    } else {
-      // Queue the message to send when connected
+    } else if (isConnectingRef.current || !isBackendReady) {
+      // Queue messages if still connecting or backend not ready
       messageQueueRef.current.push(message);
-      console.warn('WS not connected; message queued');
+      console.warn('WebSocket not ready, message queued');
+    } else {
+      console.warn('WebSocket is not connected');
     }
-  }, [socket]);
+  }, [socket, isBackendReady]);
 
-  const value = { socket, isConnected, isBackendReady, sendMessage };
+  const value = { 
+    socket, 
+    isConnected, 
+    isBackendReady, 
+    sendMessage 
+  };
+
   return (
     <WebSocketContext.Provider value={value}>
       {children}
