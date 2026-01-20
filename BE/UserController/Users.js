@@ -1,150 +1,131 @@
-const User = require('../Tables/User');
+
+const User = require('../Tables/User')
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const config = require('../config');
 
 const CreateUser = async (req, res) => {
     try {
-        const { email, password, name } = req.body;
+      const { email, password, name, username } = req.body;
+      console.log(req.body);
+  
+      // Add validation and error handling as needed
+      if (!email || !password || !username) {
+        return res.status(400).json({ error: 'Email, username and password are required' });
+      }
+  
+      const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+      if (existingUser) {
+        return res.status(409).json({ error: 'User with this email or username already exists' });
+      }
 
-        // Validation
-        if (!email || !password || !name) {
-            return res.status(400).json({ 
-                error: 'Missing required fields',
-                required: ['email', 'password', 'name']
-            });
+      // Generate unique userId
+      const userCount = await User.countDocuments();
+      const userId = userCount + 1;
+
+      // Hash password with bcrypt (salt rounds = 10)
+      const hashedPassword = await bcrypt.hash(password, 10);
+  
+      const newUser = new User({
+        email,
+        password, // Kept for backup/recovery purposes
+        hashedPassword, // Encrypted password for authentication
+        name: name || username,
+        username,
+        userId
+      });
+  
+      await newUser.save();
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { 
+          userId: newUser.userId, 
+          username: newUser.username,
+          email: newUser.email 
+        },
+        config.JWT_SECRET,
+        { expiresIn: config.JWT_EXPIRES_IN }
+      );
+  
+      res.json({ 
+        message: 'User registered successfully',
+        token,
+        user: {
+          userId: newUser.userId,
+          username: newUser.username,
+          email: newUser.email,
+          name: newUser.name
         }
-
-        // Email format validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            return res.status(400).json({ error: 'Invalid email format' });
-        }
-
-        // Password strength validation
-        if (password.length < 8) {
-            return res.status(400).json({ 
-                error: 'Password must be at least 8 characters long'
-            });
-        }
-
-        // Check if user exists
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(409).json({ error: 'User with this email already exists' });
-        }
-
-        // Get next userId
-        const userId = await User.getNextUserId();
-
-        // Hash password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-
-        // Create new user
-        const newUser = new User({
-            userId,
-            email,
-            password: hashedPassword,
-            name
-        });
-
-        await newUser.save();
-
-        // Remove password from response
-        const userResponse = newUser.toObject();
-        delete userResponse.password;
-
-        res.status(201).json({
-            message: 'User registered successfully',
-            user: userResponse
-        });
-
+      });
     } catch (error) {
-        console.error('Error creating user:', error);
-        res.status(500).json({ error: 'Internal server error' });
+      console.error('Error creating user:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
-};
+  }
 
-const LoginUser = async (req, res) => {
+  const AllUsers = async (req, res) => {
     try {
-        const { email, password } = req.body;
-
-        // Validation
-        if (!email || !password) {
-            return res.status(400).json({ error: 'Email and password are required' });
-        }
-
-        // Find user
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(401).json({ error: 'Invalid credentials' });
-        }
-
-        // Check password
-        const validPassword = await bcrypt.compare(password, user.password);
-        if (!validPassword) {
-            return res.status(401).json({ error: 'Invalid credentials' });
-        }
-
-        // Remove password from response
-        const userResponse = user.toObject();
-        delete userResponse.password;
-
-        res.json({
-            message: 'Login successful',
-            user: userResponse
-        });
-
+     console.log("hello from allusers")
+      const AllUser = await User.find()
+      console.log("🚀 ~ file: Users.js:39 ~ AllUsers ~ AllUser:", AllUser)
+      res.json({ users: AllUser });
     } catch (error) {
-        console.error('Error logging in:', error);
-        res.status(500).json({ error: 'Internal server error' });
+      console.error('Error fetching users:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
-};
+  }
 
-const AllUsers = async (req, res) => {
+  const LoginUser = async (req, res) => {
     try {
-        const users = await User.find({ active: true })
-            .select('-password') // Exclude password field
-            .sort({ createdAt: -1 });
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ error: 'Username and password are required' });
+      }
 
-        return users;
-    } catch (error) {
-        console.error('Error fetching users:', error);
-        throw error;
-    }
-};
+      const user = await User.findOne({ username });
+      
+      if (!user) {
+        return res.status(404).json({ error: 'User not found. Please register first.' });
+      }
 
-const UpdateUser = async (req, res) => {
-    try {
-        const { userId } = req.params;
-        const updates = req.body;
+      // Compare hashed password using bcrypt
+      const isPasswordValid = await bcrypt.compare(password, user.hashedPassword);
+      
+      if (!isPasswordValid) {
+        return res.status(401).json({ error: 'Invalid username or password' });
+      }
 
-        // Prevent password update through this route
-        delete updates.password;
-        
-        const user = await User.findOneAndUpdate(
-            { userId: userId },
-            { $set: updates },
-            { new: true }
-        ).select('-password');
+      // Generate JWT token
+      const token = jwt.sign(
+        { 
+          userId: user.userId, 
+          username: user.username,
+          email: user.email 
+        },
+        config.JWT_SECRET,
+        { expiresIn: config.JWT_EXPIRES_IN }
+      );
 
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
+      // Update lastLogin timestamp
+      user.lastLogin = new Date();
+      await user.save();
+
+      res.json({
+        message: 'Login successful',
+        token,
+        user: {
+          userId: user.userId,
+          username: user.username,
+          email: user.email,
+          name: user.name
         }
-
-        res.json({
-            message: 'User updated successfully',
-            user
-        });
-
+      });
     } catch (error) {
-        console.error('Error updating user:', error);
-        res.status(500).json({ error: 'Internal server error' });
+      console.error('Error logging in:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
-};
+  }
 
-module.exports = { 
-    CreateUser, 
-    LoginUser, 
-    AllUsers,
-    UpdateUser
-};
+  module.exports = { CreateUser, AllUsers, LoginUser }
