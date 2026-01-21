@@ -29,9 +29,8 @@ const wss = new WebSocket.Server({server});
 
 app.use(cors({
   origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type']
 })); // Enable CORS for all routes
 app.use(express.json()); // json body parser
 
