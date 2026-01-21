@@ -62,15 +62,25 @@ api.set("join-room", async (req, clients, websocketConnection) => {
         const roomId = req.room;
         const userId = req.username || req.user;
 
-        const websocketConnectionObj = { websocketConnection };
-
         // If room doesn't exist, create a new one
         if (!rooms.has(roomId)) {
             rooms.set(roomId, new Set());
         }
 
-        // Add the user to the room
-        rooms.get(roomId).add({ userId, websocketConnectionObj });
+        const roomUsers = rooms.get(roomId);
+
+        // Remove any existing connection for this user (handles refresh/reconnect)
+
+        // Remove old connection if user exists (on refresh, old WebSocket closes but new one connects before cleanup)
+        // Without this, user would have stale connection that can't receive/send messages
+        roomUsers.forEach(user => {
+            if (user.userId === userId) {
+                roomUsers.delete(user);
+            }
+        });
+
+        // Add the user with their new websocket connection
+        roomUsers.add({ userId, websocketConnection });
 
         console.log(`✅ User ${userId} joined room ${roomId}`);
 
@@ -103,6 +113,9 @@ api.set("join-room", async (req, clients, websocketConnection) => {
 
             console.log(`📤 Sent ${messageHistory.length} messages to ${userId} in room ${roomId}`);
         }
+
+        // Broadcast updated users list to all users in the room
+        broadcastRoomUsers(roomId);
     } catch (error) {
         console.error('Error in join-room:', error);
     }
@@ -159,6 +172,9 @@ api.set("leave-room", async (req, clients, websocketConnection) => {
             }
         });
         console.log(`User ${userId} left room ${roomId}`);
+        
+        // Broadcast updated users list to remaining users in the room
+        broadcastRoomUsers(roomId);
     }
 });
 
@@ -181,7 +197,29 @@ function sendMessageToRoom(userId, message, clients, ws, savedMessage = null) {
     
 }
 
+// Function to broadcast room users list to all users in a room
+function broadcastRoomUsers(roomId) {
+    if (!rooms.has(roomId)) return;
+
+    const roomUsers = rooms.get(roomId);
+    const usersList = Array.from(roomUsers).map(user => user.userId);
+
+    console.log(`📢 Broadcasting ${usersList.length} users in room ${roomId}`);
+
+    // Send to all clients in the room
+    roomUsers.forEach(user => {
+        if (user.websocketConnection && user.websocketConnection.readyState === WebSocket.OPEN) {
+            user.websocketConnection.send(JSON.stringify({
+                method: 'room-users-update',
+                roomId: roomId,
+                users: usersList
+            }));
+        }
+    });
+}
+
 module.exports = {
     handleMessage,
     api, // if you need to use 'api' in another file
+    rooms, // Export rooms Map for REST API access
 };

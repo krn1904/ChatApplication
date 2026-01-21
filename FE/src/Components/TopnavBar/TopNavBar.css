@@ -227,6 +227,33 @@
     stroke-linecap: round;
     stroke-linejoin: round;
   }
+
+  .users-button {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 0.5rem;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-normal);
+    width: 36px;
+    height: 36px;
+  }
+  
+  .users-button:hover {
+    background: var(--surface-color-hover);
+    border-color: var(--primary);
+    color: var(--text-primary);
+    transform: scale(1.05);
+  }
+  
+  .users-button svg {
+    width: 20px;
+    height: 20px;
+  }
   
   .logout-button {
     background: var(--surface-color);

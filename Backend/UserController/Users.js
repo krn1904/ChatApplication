@@ -64,18 +64,6 @@ const CreateUser = async (req, res) => {
     }
   }
 
-  const AllUsers = async (req, res) => {
-    try {
-     console.log("hello from allusers")
-      const AllUser = await User.find()
-      console.log("🚀 ~ file: Users.js:39 ~ AllUsers ~ AllUser:", AllUser)
-      res.json({ users: AllUser });
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  }
-
   const LoginUser = async (req, res) => {
     try {
       const { username, password } = req.body;
@@ -128,4 +116,4 @@ const CreateUser = async (req, res) => {
     }
   }
 
-  module.exports = { CreateUser, AllUsers, LoginUser }
+  module.exports = { CreateUser, LoginUser }

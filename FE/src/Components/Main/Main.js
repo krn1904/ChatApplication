@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
 import "./Main.css";
 import TopNavBar from "../TopnavBar/TopNavBar";
+import UsersList from "../UsersList/UsersList";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useWebSocket } from "../Hooks/useWebsocket.jsx";
 
 function Main() {
   const [messageInput, setMessageInput] = useState("");
   const [chat, setChat] = useState([]);
+  const [roomUsers, setRoomUsers] = useState([]);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
   const locationData = useLocation();
   const navigate = useNavigate();
   const { socket, isConnected, sendMessage } = useWebSocket();
@@ -44,6 +47,10 @@ function Main() {
             }
             return prevChat;
           });
+        }
+        
+        if (receivedMessage.method === 'room-users-update') {
+          setRoomUsers(receivedMessage.users || []);
         }
       } catch (error) {
         console.error('Error processing message:', error);
@@ -99,8 +106,14 @@ function Main() {
 
   return (
     <>
-      <TopNavBar />
+      <TopNavBar onTogglePanel={() => setIsPanelOpen(!isPanelOpen)} />
       <div className="app">
+        <UsersList 
+          isOpen={isPanelOpen} 
+          onClose={() => setIsPanelOpen(false)}
+          users={roomUsers}
+          currentUser={username}
+        />
         <div className="message-box-container">
           <div className="message-box">
             {chat.length === 0 ? (

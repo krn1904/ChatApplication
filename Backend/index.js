@@ -6,8 +6,9 @@ const cors = require('cors');
 const KeepAlive = require('./keepAlive');
 const config = require('./config');
 const { connectDB, getConnectionStatus } = require('./database/connection');
-const { CreateUser, AllUsers, LoginUser } = require('./UserController/Users');
+const { CreateUser, LoginUser } = require('./UserController/Users');
 const { authMiddleware } = require('./middleware/auth');
+const userRoutes = require('./routes/userRoutes');
 
 // Code changed to websocket
 const app = express();
@@ -33,6 +34,9 @@ app.use(cors({
   allowedHeaders: ['Content-Type']
 })); // Enable CORS for all routes
 app.use(express.json()); // json body parser
+
+// Mount user routes
+app.use('/api/users', userRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -65,9 +69,6 @@ app.get('/', (req, res) => {
 app.post('/api/auth/register', CreateUser);
 app.post('/api/auth/login', LoginUser);
 
-// Protected routes (require JWT token)
-app.get('/api/users', authMiddleware, AllUsers);
-
 // Example: Get current user profile (protected)
 app.get('/api/auth/me', authMiddleware, (req, res) => {
   res.json({
@@ -93,6 +94,30 @@ const initConnection = (ws) => {
 
   ws.on('close', () => { 
     console.log("connection closed");
+    
+    // Remove user from all rooms when connection closes
+    const { rooms } = require('./Websocket/ws');
+    rooms.forEach((roomUsers, roomId) => {
+      roomUsers.forEach(user => {
+        if (user.websocketConnection === ws) {
+          roomUsers.delete(user);
+          console.log(`🚪 User ${user.userId} removed from room ${roomId} on disconnect`);
+          
+          // Broadcast updated users list after removal
+          const usersList = Array.from(roomUsers).map(u => u.userId);
+          roomUsers.forEach(u => {
+            if (u.websocketConnection.readyState === 1) { // OPEN
+              u.websocketConnection.send(JSON.stringify({
+                method: 'room-users-update',
+                roomId: roomId,
+                users: usersList
+              }));
+            }
+          });
+        }
+      });
+    });
+    
     // Clients are automatically managed by wss.clients
     clients = wss.clients;
 });

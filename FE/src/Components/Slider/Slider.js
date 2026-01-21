@@ -17,7 +17,7 @@ const Slider = ({ isOpen, onClose }) => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(`${config.BaseURL}/api/users/room/${roomId}/users`);
+        const response = await fetch(`${config.BackendHTTP}/api/users/room/${roomId}/users`);
         const data = await response.json();
         
         if (!response.ok) {
