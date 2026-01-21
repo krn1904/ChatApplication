@@ -128,9 +128,29 @@ ChatApplication/
 
 ## 🌐 Production Deployment
 
-### Deploy to Render.com
+### ⚠️ Important: Hosting Platform Decision
 
-#### Backend Deployment
+**Backend: Use Render** ✅  
+**Frontend: Use Vercel** ✅  
+**Backend on Vercel: ❌ DON'T DO THIS!**
+
+#### Why Render for Backend?
+
+| Feature | Render | Vercel |
+|---------|--------|--------|
+| Server Type | Persistent | Serverless |
+| WebSocket Support | ✅ Full | ❌ Limited |
+| Long Connections | ✅ Yes | ❌ 10s timeout |
+| Keep-Alive Works | ✅ Yes | ⚠️ Different |
+| Best For | Backend | Frontend |
+
+**Key Points:**
+- This app uses **WebSockets** for real-time chat → Needs persistent server
+- Vercel serverless functions **timeout after 10 seconds** (Hobby plan)
+- Render provides a **traditional Node.js server** that stays running
+- Keep-alive mechanisms work as designed on Render
+
+### Deploy Backend to Render
 1. **Create Web Service** on Render
 2. **Connect GitHub repository**
 3. **Configure settings:**
@@ -147,8 +167,15 @@ ChatApplication/
    NODE_ENV=production
    ```
 
-#### Frontend Deployment
-1. **Create Static Site** on Render
+#### Frontend Deployment (Vercel Recommended)
+
+**Why Vercel for Frontend?**
+- ✅ Optimized for static sites and React apps
+- ✅ Fast global CDN
+- ✅ Automatic deployments from Git
+- ✅ Free tier is generous for frontends
+
+1. **Create Static Site** on Vercel
 2. **Connect GitHub repository**
 3. **Configure settings:**
    - **Name**: `chat-app-frontend`
