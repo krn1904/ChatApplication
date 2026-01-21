@@ -6,7 +6,11 @@ const { rooms } = require('../Websocket/ws');
 router.post('/register', CreateUser);
 router.post('/login', LoginUser);
 
-// Get users in a room
+/**
+ * Get users in a specific room
+ * Used by Slider (hamburger menu) to fetch room users via HTTP
+ * Note: UsersList panel uses WebSocket for real-time updates instead
+ */
 router.get('/room/:roomId/users', (req, res) => {
     try {
         const { roomId } = req.params;

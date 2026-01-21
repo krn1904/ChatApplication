@@ -2,8 +2,8 @@ const { WebSocket } = require('ws');
 const Message = require('../Tables/Message.js');
 const User = require('../Tables/User.js');
 
-const api = new Map();
-const rooms = new Map(); // Tracks active WebSocket connections
+const api = new Map(); // Maps method names to handler functions
+const rooms = new Map(); // Maps roomId -> Set of {userId, websocketConnection}
 
  const handleMessage = async (req, clients, ws) => {
 
@@ -197,7 +197,12 @@ function sendMessageToRoom(userId, message, clients, ws, savedMessage = null) {
     
 }
 
-// Function to broadcast room users list to all users in a room
+/**
+ * Broadcasts updated user list to all users in a room
+ * Called when: user joins, user leaves, or connection closes
+ * 
+ * @param {string} roomId - The room ID to broadcast to
+ */
 function broadcastRoomUsers(roomId) {
     if (!rooms.has(roomId)) return;
 

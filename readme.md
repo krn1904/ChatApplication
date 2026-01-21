@@ -12,9 +12,11 @@ A modern, real-time chat application built with React and Node.js, featuring Web
 - **Real-time Messaging**: Instant message delivery using WebSocket connections
 - **Room-based Chat**: Join different chat rooms for organized conversations
 - **User Management**: Simple username-based authentication
+- **Live User List**: View all active users in the current room with real-time updates via sliding panel
 - **Responsive Design**: Works seamlessly on desktop and mobile devices
 - **Live Connection Status**: Real-time connection monitoring
 - **Message History**: View previous messages in each room
+- **Theme Support**: Light and dark mode with smooth transitions
 
 ## 🛠️ Tech Stack
 
@@ -38,7 +40,7 @@ A modern, real-time chat application built with React and Node.js, featuring Web
 ```
 ChatApplication/
 ├── Backend/                 # Backend server
-│   ├── index.js            # Main server file
+│   ├── index.js            # Main server file with WebSocket initialization
 │   ├── config.js           # Configuration settings
 │   ├── package.json        # Backend dependencies
 │   ├── Tables/             # Database models
@@ -46,8 +48,24 @@ ChatApplication/
 │   │   └── Message.js      # Message model
 │   ├── UserController/     # User management
 │   │   └── Users.js        # User CRUD operations
+│   ├── routes/             # API routes
+│   │   ├── userRoutes.js   # User-related endpoints
+│   │   └── messageRoutes.js # Message-related endpoints
 │   └── Websocket/          # WebSocket handling
-│       └── ws.js           # WebSocket message handlers
+│       └── ws.js           # WebSocket event handlers & room management
+├── FE/                     # Frontend application
+│   ├── src/
+│   │   ├── Components/
+│   │   │   ├── Main/       # Main chat interface
+│   │   │   ├── TopnavBar/  # Navigation with users icon
+│   │   │   ├── UsersList/  # Active users sliding panel
+│   │   │   ├── Slider/     # Hamburger menu sidebar
+│   │   │   └── ...         # Other components
+│   │   ├── Hooks/
+│   │   │   └── useWebsocket.jsx # WebSocket hook for real-time communication
+│   │   └── config.js       # Frontend configuration
+│   └── package.json        # Frontend dependencies
+└── readme.md               # This file
 ├── FE/                     # Frontend application
 │   ├── src/
 │   │   ├── App.js          # Main React component
@@ -204,12 +222,21 @@ ChatApplication/
 2. **Press Enter** or click the send button
 3. **Messages appear instantly** for all users in the same room
 
+### Viewing Active Users
+
+1. **Click the users icon** in the top navigation bar (next to the theme toggle)
+2. **A sliding panel** appears from the right showing all users in your current room
+3. **Real-time updates**: The list automatically updates when users join or leave
+4. **Your username** is marked with "(You)" for easy identification
+5. **Click outside or the users icon again** to close the panel
+
 ### Features
 
 - **Real-time Updates**: Messages appear instantly without page refresh
 - **Room Isolation**: Messages are only visible to users in the same room
 - **Connection Status**: The app shows your WebSocket connection status
 - **Responsive Design**: Works on desktop, tablet, and mobile devices
+- **User Awareness**: See who's currently active in your room
 
 ## 🔧 Configuration
 
@@ -258,16 +285,23 @@ const config = {
 
 | Event | Description | Payload |
 |-------|-------------|---------|
-| `joinRoom` | Join a chat room | `{user: string, room: string}` |
+| `join-room` | Join a chat room | `{user: string, room: string}` |
 | `send-message` | Send a message | `{message: string, author: string, room: string}` |
 | `get-messages` | Get room messages | `{room: string}` |
+| `room-users-update` | Receive updated user list | `{users: Array<{username: string}>}` |
+
+**Note**: The `room-users-update` event is automatically broadcast to all users in a room when:
+- A user joins the room
+- A user leaves the room
+- A WebSocket connection is closed
 
 ### REST Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/createUser` | Create a new user |
-| GET | `/users` | Get all users |
+| POST | `/api/users/register` | Create a new user account |
+| POST | `/api/users/login` | Authenticate existing user |
+| GET | `/api/users/room/:roomId/users` | Get users in a specific room (for fallback/initial load) |
 
 ## 🐛 Troubleshooting
 
