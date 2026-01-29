@@ -9,6 +9,7 @@ const { connectDB, getConnectionStatus } = require('./database/connection');
 const { CreateUser, LoginUser } = require('./UserController/Users');
 const { authMiddleware } = require('./middleware/auth');
 const userRoutes = require('./routes/userRoutes');
+const messageRoutes = require('./routes/messageRoutes');
 
 // Code changed to websocket
 const app = express();
@@ -37,6 +38,9 @@ app.use(express.json()); // json body parser
 
 // Mount user routes
 app.use('/api/users', userRoutes);
+
+// Mount message routes
+app.use('/api/messages', messageRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

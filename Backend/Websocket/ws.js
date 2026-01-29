@@ -4,6 +4,7 @@ const User = require('../Tables/User.js');
 
 const api = new Map(); // Maps method names to handler functions
 const rooms = new Map(); // Maps roomId -> Set of {userId, websocketConnection}
+const MAX_USERS_PER_ROOM = 100;
 
  const handleMessage = async (req, clients, ws) => {
 
@@ -46,7 +47,6 @@ api.set("send-message", async (req, clients, ws) => {
         });
 
         const savedMessage = await newMessage.save();
-        console.log(`✅ Message saved to DB by ${author} in room ${roomId}`);
 
         // Broadcast message to room
         sendMessageToRoom(author, content, clients, ws, savedMessage);
@@ -79,10 +79,22 @@ api.set("join-room", async (req, clients, websocketConnection) => {
             }
         });
 
+        // Enforce max users per room
+        if (roomUsers.size >= MAX_USERS_PER_ROOM) {
+            console.warn(`⚠️ Room ${roomId} is full (${MAX_USERS_PER_ROOM} users). Rejecting ${userId}`);
+            if (websocketConnection.readyState === WebSocket.OPEN) {
+                websocketConnection.send(JSON.stringify({
+                    method: 'room-full',
+                    roomId: roomId,
+                    maxUsers: MAX_USERS_PER_ROOM,
+                    message: `Room ${roomId} is full. Max users: ${MAX_USERS_PER_ROOM}.`
+                }));
+            }
+            return;
+        }
+
         // Add the user with their new websocket connection
         roomUsers.add({ userId, websocketConnection });
-
-        console.log(`✅ User ${userId} joined room ${roomId}`);
 
         // Fetch message history from database (last 50 messages)
         const messageHistory = await Message.find({ roomId: roomId })
@@ -110,8 +122,6 @@ api.set("join-room", async (req, clients, websocketConnection) => {
                 })),
                 count: messageHistory.length
             }));
-
-            console.log(`📤 Sent ${messageHistory.length} messages to ${userId} in room ${roomId}`);
         }
 
         // Broadcast updated users list to all users in the room
@@ -141,8 +151,6 @@ api.set("get-messages", async (req) => {
         // Reverse to get chronological order
         messages.reverse();
 
-        console.log(`📥 Fetched ${messages.length} messages for room ${roomId}`);
-
         return messages.map(msg => ({
             messageId: msg.messageId,
             author: msg.author,
@@ -171,7 +179,6 @@ api.set("leave-room", async (req, clients, websocketConnection) => {
                 roomUsers.delete(user);
             }
         });
-        console.log(`User ${userId} left room ${roomId}`);
         
         // Broadcast updated users list to remaining users in the room
         broadcastRoomUsers(roomId);
@@ -208,8 +215,6 @@ function broadcastRoomUsers(roomId) {
 
     const roomUsers = rooms.get(roomId);
     const usersList = Array.from(roomUsers).map(user => user.userId);
-
-    console.log(`📢 Broadcasting ${usersList.length} users in room ${roomId}`);
 
     // Send to all clients in the room
     roomUsers.forEach(user => {
