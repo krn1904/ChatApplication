@@ -162,7 +162,7 @@
 .input-box button {
   padding: var(--spacing-md) var(--spacing-xl);
   background: var(--primary-gradient);
-  color: var(--text-primary);
+  color: #ffffff;
   border: none; border-radius: var(--radius-lg);
   font-weight: 500; cursor: pointer; min-width: 100px; height: 44px;
   transition: all var(--transition-normal);

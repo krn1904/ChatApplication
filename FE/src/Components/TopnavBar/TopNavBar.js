@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import './TopNavBar.css';
-import Slider from '../Slider/Slider';
+// import Slider from '../Slider/Slider'; // Commented out - hamburger menu disabled
 import { useWebSocket } from '../Hooks/useWebsocket.jsx';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const TopNavBar = ({ hideConnectionStatus = false, hideHamburger = false, showBackButton = false, onTogglePanel }) => {
-  const [isSliderOpen, setIsSliderOpen] = useState(false);
+  // const [isSliderOpen, setIsSliderOpen] = useState(false); // Commented out - hamburger menu disabled
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
   const { isConnected } = useWebSocket();
   const location = useLocation();
@@ -22,9 +22,9 @@ const TopNavBar = ({ hideConnectionStatus = false, hideHamburger = false, showBa
     setTheme(prevTheme => prevTheme === 'dark' ? 'light' : 'dark');
   };
 
-  const toggleSlider = () => {
-    setIsSliderOpen(!isSliderOpen);
-  };
+  // const toggleSlider = () => { // Commented out - hamburger menu disabled
+  //   setIsSliderOpen(!isSliderOpen);
+  // };
 
   return (
     <>
@@ -38,7 +38,9 @@ const TopNavBar = ({ hideConnectionStatus = false, hideHamburger = false, showBa
                   <span>Back to Chat</span>
                 </div>
               </Link>
-            ) : !hideHamburger && (
+            ) : null}
+            {/* Hamburger menu - commented out for now, will check later if needed
+            : !hideHamburger && (
               <div className="hamburger-menu" onClick={toggleSlider}>
                 <div className={`hamburger-icon ${isSliderOpen ? 'open' : ''}`}>
                   <span></span>
@@ -46,7 +48,7 @@ const TopNavBar = ({ hideConnectionStatus = false, hideHamburger = false, showBa
                   <span></span>
                 </div>
               </div>
-            )}
+            )} */}
             <div className="navbar-brand-container">
               <span className="navbar-brand">Chat App</span>
               {!hideConnectionStatus && (
@@ -106,6 +108,7 @@ const TopNavBar = ({ hideConnectionStatus = false, hideHamburger = false, showBa
           </div>
         </div>
       </nav>
+      {/* Slider component - commented out since hamburger menu is disabled
       {!hideHamburger && (
         <>
           <Slider isOpen={isSliderOpen} onClose={() => setIsSliderOpen(false)} />
@@ -114,7 +117,7 @@ const TopNavBar = ({ hideConnectionStatus = false, hideHamburger = false, showBa
             onClick={() => setIsSliderOpen(false)}
           />
         </>
-      )}
+      )} */}
     </>
   );
 };
