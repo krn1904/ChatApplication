@@ -43,7 +43,7 @@ const authMiddleware = (req, res, next) => {
       return res.status(401).json({ error: 'Invalid token' });
     }
     
-    console.error('Auth middleware error:', error);
+    console.error('[Auth] Middleware error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 };

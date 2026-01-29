@@ -13,20 +13,17 @@ class WakeUpService {
   async wakeUpBackend() {
     // Prevent concurrent checks
     if (this.isChecking) {
-      console.log('Backend check already in progress...');
       return false;
     }
 
     // Cooldown between checks
     const now = Date.now();
     if (now - this.lastCheckTime < this.checkCooldown) {
-      console.log('Backend check on cooldown...');
       return false;
     }
 
     this.isChecking = true;
     this.lastCheckTime = now;
-    console.log('Attempting to wake up backend...');
     
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
       try {
@@ -41,24 +38,16 @@ class WakeUpService {
         clearTimeout(timeoutId);
 
         if (response.ok) {
-          console.log(`✓ Backend is awake! Attempt ${attempt}/${this.maxRetries}`);
           this.isChecking = false;
           return true;
         }
       } catch (error) {
-        if (error.name === 'AbortError') {
-          console.warn(`⏱ Wake-up attempt ${attempt}/${this.maxRetries} timed out`);
-        } else {
-          console.warn(`✗ Wake-up attempt ${attempt}/${this.maxRetries} failed:`, error?.message || error);
-        }
-        
         if (attempt < this.maxRetries) {
           await this.delay(this.retryDelay);
         }
       }
     }
     
-    console.error('❌ Failed to wake up backend after all attempts');
     this.isChecking = false;
     return false;
   }

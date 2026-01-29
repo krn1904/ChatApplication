@@ -33,11 +33,11 @@ function Login() {
     let ws = new WebSocket(config.WsURL);
     setWebsocketServer(ws);
     ws.addEventListener("open", () => {
-      console.log("WebSocket connection established");
+      // Connection established
     });
     // Event listener for handling errors
     ws.addEventListener("error", (error) => {
-      console.error("WebSocket error:", error);
+      // WebSocket error occurred
     });
     // Return a cleanup function to close the WebSocket connection when the component unmounts
     // return () => {

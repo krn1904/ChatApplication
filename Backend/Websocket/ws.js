@@ -1,17 +1,32 @@
+/**
+ * WebSocket Handler Module
+ * Manages real-time communication, authentication, and room-based messaging
+ * Features: JWT authentication, presence tracking, typing indicators, message persistence
+ */
+
 const { WebSocket } = require('ws');
 const jwt = require('jsonwebtoken');
 const config = require('../config');
 const Message = require('../Tables/Message.js');
 const User = require('../Tables/User.js');
 
-const api = new Map(); // Maps method names to handler functions
-const rooms = new Map(); // Maps roomId -> Set of {userId, websocketConnection}
+// WebSocket method handlers
+const api = new Map();
+
+// Active rooms: roomId -> Set of {userId, websocketConnection}
+const rooms = new Map();
+
+// Maximum users allowed per room
 const MAX_USERS_PER_ROOM = 100;
 
+/**
+ * Verifies and decodes a JWT token
+ * @param {string} token - JWT token to verify
+ * @returns {Object|null} Decoded user data or null if invalid
+ */
 function verifySocketToken(token) {
-    if (!token) {
-        return null;
-    }
+    if (!token) return null;
+    
     try {
         const decoded = jwt.verify(token, config.JWT_SECRET);
         return {
@@ -24,6 +39,11 @@ function verifySocketToken(token) {
     }
 }
 
+/**
+ * Sends authentication error to client
+ * @param {WebSocket} websocketConnection - Client WebSocket connection
+ * @param {string} message - Error message to send
+ */
 function sendAuthError(websocketConnection, message) {
     if (websocketConnection.readyState === WebSocket.OPEN) {
         websocketConnection.send(JSON.stringify({
@@ -33,20 +53,25 @@ function sendAuthError(websocketConnection, message) {
     }
 }
 
- const handleMessage = async (req, clients, ws) => {
-
-    if (api.has(req.method)){
-
-        let requectMethod = api.get(req.method);
-
-        let res = await requectMethod(req, clients, ws)
-
-        return res
+/**
+ * Routes incoming WebSocket messages to appropriate handlers
+ * @param {Object} req - Message request object
+ * @param {Set} clients - Set of connected WebSocket clients
+ * @param {WebSocket} ws - WebSocket connection
+ * @returns {Promise<any>} Handler result
+ */
+const handleMessage = async (req, clients, ws) => {
+    if (api.has(req.method)) {
+        const requestMethod = api.get(req.method);
+        return await requestMethod(req, clients, ws);
     }
-
 }
 
-// When message has been send set the message to the respective room.
+/**
+ * Handler: send-message
+ * Authenticates user, saves message to database, and broadcasts to room
+ * @requires JWT token for authentication
+ */
 api.set("send-message", async (req, clients, ws) => {
     try {
         const content = req.message;
@@ -60,14 +85,13 @@ api.set("send-message", async (req, clients, ws) => {
         }
 
         if (!content || !roomId) {
-            console.error('Missing required fields: message, author, or room');
+            console.error('[WebSocket] Missing required fields: message or room');
             return;
         }
 
-        // Get authorId from username
         const user = await User.findOne({ username: authUser.username });
         if (!user) {
-            console.error(`User not found: ${authUser.username}`);
+            console.error(`[WebSocket] User not found: ${authUser.username}`);
             return;
         }
 
@@ -90,6 +114,11 @@ api.set("send-message", async (req, clients, ws) => {
     }
 })
 
+/**
+ * Handler: join-room
+ * Authenticates user, adds to room, sends message history, and broadcasts presence
+ * @requires JWT token for authentication
+ */
 api.set("join-room", async (req, clients, websocketConnection) => {
     try {
         const roomId = req.room;
@@ -104,17 +133,13 @@ api.set("join-room", async (req, clients, websocketConnection) => {
         const userId = authUser.username;
         websocketConnection.user = authUser;
 
-        // If room doesn't exist, create a new one
         if (!rooms.has(roomId)) {
             rooms.set(roomId, new Set());
         }
 
         const roomUsers = rooms.get(roomId);
 
-        // Remove any existing connection for this user (handles refresh/reconnect)
-
-        // Remove old connection if user exists (on refresh, old WebSocket closes but new one connects before cleanup)
-        // Without this, user would have stale connection that can't receive/send messages
+        // Remove stale connection on reconnect/refresh
         roomUsers.forEach(user => {
             if (user.userId === userId) {
                 roomUsers.delete(user);
@@ -235,55 +260,68 @@ api.set("leave-room", async (req, clients, websocketConnection) => {
     }
 });
 
+/**
+ * Handler: typing
+ * Broadcasts typing indicator to room members
+ * @requires JWT token for authentication
+ */
 api.set("typing", async (req, clients, websocketConnection) => {
     const roomId = req.room;
     const token = req.token;
     const authUser = verifySocketToken(token) || websocketConnection.user;
-    if (!authUser || !roomId) {
-        return;
-    }
-
+    
+    if (!authUser || !roomId) return;
     broadcastTyping(roomId, authUser.username, true);
 });
 
+/**
+ * Handler: stop-typing
+ * Removes typing indicator for user
+ * @requires JWT token for authentication
+ */
 api.set("stop-typing", async (req, clients, websocketConnection) => {
     const roomId = req.room;
     const token = req.token;
     const authUser = verifySocketToken(token) || websocketConnection.user;
-    if (!authUser || !roomId) {
-        return;
-    }
-
+    
+    if (!authUser || !roomId) return;
     broadcastTyping(roomId, authUser.username, false);
 });
 
-// Function to send a message to all users in a room
+/**
+ * Broadcasts a new message to all users in a room
+ * @param {string} roomId - Room ID to broadcast to
+ * @param {string} userId - Author username
+ * @param {string} message - Message content
+ * @param {Object} savedMessage - Saved message object from database
+ */
 function sendMessageToRoom(roomId, userId, message, savedMessage = null) {
-        if (!rooms.has(roomId)) return;
+    if (!rooms.has(roomId)) return;
 
-        const roomUsers = rooms.get(roomId);
+    const roomUsers = rooms.get(roomId);
+    const messagePayload = {
+        method: 'new-message',
+        author: userId,
+        message: message,
+        messageId: savedMessage?.messageId || null,
+        timestamp: savedMessage?.timestamp || new Date(),
+        formattedTime: (savedMessage?.timestamp || new Date()).toLocaleTimeString([], { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        })
+    };
 
-        roomUsers.forEach(user => {
-                const client = user.websocketConnection;
-                if (client.readyState === WebSocket.OPEN) {
-                        const MsgObj = {
-                                method: 'new-message',
-                                author: userId,
-                                message: message,
-                                messageId: savedMessage?.messageId || null,
-                                timestamp: savedMessage?.timestamp || new Date(),
-                                formattedTime: (savedMessage?.timestamp || new Date()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                        };
-                        client.send(JSON.stringify(MsgObj));
-                }
-        });
+    roomUsers.forEach(user => {
+        const client = user.websocketConnection;
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(messagePayload));
+        }
+    });
 }
 
 /**
  * Broadcasts updated user list to all users in a room
- * Called when: user joins, user leaves, or connection closes
- * 
- * @param {string} roomId - The room ID to broadcast to
+ * @param {string} roomId - Room ID to broadcast to
  */
 function broadcastRoomUsers(roomId) {
     if (!rooms.has(roomId)) return;
@@ -291,18 +329,23 @@ function broadcastRoomUsers(roomId) {
     const roomUsers = rooms.get(roomId);
     const usersList = Array.from(roomUsers).map(user => user.userId);
 
-    // Send to all clients in the room
     roomUsers.forEach(user => {
         if (user.websocketConnection && user.websocketConnection.readyState === WebSocket.OPEN) {
             user.websocketConnection.send(JSON.stringify({
                 method: 'room-users-update',
-                roomId: roomId,
+                roomId,
                 users: usersList
             }));
         }
     });
 }
 
+/**
+ * Broadcasts user presence status (online/offline) to room
+ * @param {string} roomId - Room ID to broadcast to
+ * @param {string} userId - Username
+ * @param {string} status - 'online' or 'offline'
+ */
 function broadcastPresence(roomId, userId, status) {
     if (!rooms.has(roomId)) return;
 
@@ -311,7 +354,7 @@ function broadcastPresence(roomId, userId, status) {
         if (user.websocketConnection && user.websocketConnection.readyState === WebSocket.OPEN) {
             user.websocketConnection.send(JSON.stringify({
                 method: 'user-presence',
-                roomId: roomId,
+                roomId,
                 user: userId,
                 status
             }));
@@ -319,6 +362,12 @@ function broadcastPresence(roomId, userId, status) {
     });
 }
 
+/**
+ * Broadcasts typing indicator to room (excluding sender)
+ * @param {string} roomId - Room ID to broadcast to
+ * @param {string} userId - Username of person typing
+ * @param {boolean} isTyping - Typing state
+ */
 function broadcastTyping(roomId, userId, isTyping) {
     if (!rooms.has(roomId)) return;
 
@@ -328,7 +377,7 @@ function broadcastTyping(roomId, userId, isTyping) {
         if (user.websocketConnection && user.websocketConnection.readyState === WebSocket.OPEN) {
             user.websocketConnection.send(JSON.stringify({
                 method: 'typing',
-                roomId: roomId,
+                roomId,
                 user: userId,
                 isTyping
             }));

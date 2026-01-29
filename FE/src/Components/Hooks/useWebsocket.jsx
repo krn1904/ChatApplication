@@ -13,19 +13,17 @@ export const useWebSocket = () => {
     const ws = new WebSocket(config.WsURL);
 
     ws.onopen = () => {
-      console.log('WebSocket Connected');
       setIsConnected(true);
       setSocket(ws);
     };
 
     ws.onclose = () => {
-      console.log('WebSocket Disconnected');
       setIsConnected(false);
       setSocket(null);
     };
 
     ws.onerror = (error) => {
-      console.error('WebSocket Error:', error);
+      // WebSocket error occurred
     };
 
     return () => {
@@ -38,8 +36,6 @@ export const useWebSocket = () => {
   const sendMessage = useCallback((message) => {
     if (socket && socket.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify(message));
-    } else {
-      console.error('WebSocket is not connected');
     }
   }, [socket]);
 
@@ -64,7 +60,6 @@ export const WebSocketProvider = ({ children }) => {
     }
     
     if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
-      console.error('Max reconnection attempts reached');
       return;
     }
 
@@ -75,7 +70,6 @@ export const WebSocketProvider = ({ children }) => {
       const ready = await wakeUpService.ensureBackendReady();
       setIsBackendReady(ready);
       if (!ready) {
-        console.error('Backend not ready, will retry...');
         isConnectingRef.current = false;
         reconnectAttemptsRef.current++;
         reconnectTimeoutRef.current = setTimeout(() => {
@@ -87,45 +81,38 @@ export const WebSocketProvider = ({ children }) => {
       const ws = new WebSocket(config.WsURL);
 
       ws.onopen = () => {
-        console.log('WebSocket Connected');
         setIsConnected(true);
         reconnectAttemptsRef.current = 0;
         isConnectingRef.current = false;
         setSocket(ws);
-        // Flush any queued messages
+        
         try {
           while (messageQueueRef.current.length) {
             const msg = messageQueueRef.current.shift();
             ws.send(JSON.stringify(msg));
           }
         } catch (e) {
-          console.error('Failed flushing queued messages:', e);
+          // Failed to flush queued messages
         }
       };
 
       ws.onclose = () => {
-        console.log('WebSocket Disconnected');
         setIsConnected(false);
         setSocket(null);
         isConnectingRef.current = false;
         
         if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
           reconnectAttemptsRef.current++;
-          console.log(`Reconnecting... Attempt ${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS}`);
           reconnectTimeoutRef.current = setTimeout(() => {
             connectWebSocket();
           }, RECONNECT_INTERVAL);
-        } else {
-          console.error('Max reconnection attempts reached');
         }
       };
 
       ws.onerror = (error) => {
-        console.error('WebSocket Error:', error);
         isConnectingRef.current = false;
       };
     } catch (error) {
-      console.error('WebSocket Connection Error:', error);
       isConnectingRef.current = false;
       reconnectAttemptsRef.current++;
       if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
@@ -150,7 +137,7 @@ export const WebSocketProvider = ({ children }) => {
         try { 
           socket.close(); 
         } catch (e) {
-          console.error('Error closing socket:', e);
+          // Socket close error
         } 
       }
       isConnectingRef.current = false;
@@ -162,11 +149,7 @@ export const WebSocketProvider = ({ children }) => {
     if (socket && socket.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify(message));
     } else if (isConnectingRef.current || !isBackendReady) {
-      // Queue messages if still connecting or backend not ready
       messageQueueRef.current.push(message);
-      console.warn('WebSocket not ready, message queued');
-    } else {
-      console.warn('WebSocket is not connected');
     }
   }, [socket, isBackendReady]);
 

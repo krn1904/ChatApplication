@@ -47,8 +47,6 @@ function LoginPage() {
           localStorage.setItem('token', response.token);
           localStorage.setItem('user', JSON.stringify(response.user));
           
-          console.log('Login successful:', response);
-          
           // Navigate to chat with authenticated user
           navigate("/chat", { 
             state: { 
@@ -94,8 +92,6 @@ function LoginPage() {
           formData.password,
           formData.username
         );
-
-        console.log('Registration successful:', response);
         
         // Auto-login after signup
         setIsLogin(true);

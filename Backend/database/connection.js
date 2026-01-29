@@ -1,7 +1,23 @@
+/**
+ * MongoDB Connection Manager
+ * 
+ * Handles database connection lifecycle with automatic reconnection.
+ * Implements singleton pattern to reuse existing connections.
+ * 
+ * @module database/connection
+ */
+
 const mongoose = require('mongoose');
 
 let isConnected = false;
 
+/**
+ * Establish MongoDB connection with retry logic
+ * 
+ * @async
+ * @returns {Promise<void>}
+ * @throws {Error} If MongoDB URI is not defined or connection fails
+ */
 const connectDB = async () => {
   if (isConnected) {
     console.log('📦 Using existing MongoDB connection');
@@ -76,6 +92,15 @@ const connectDB = async () => {
   }
 };
 
+/**
+ * Get current MongoDB connection status
+ * 
+ * @returns {Object} Connection status object
+ * @property {boolean} isConnected - Whether connection is established
+ * @property {number} readyState - Mongoose connection state (0-3)
+ * @property {string} host - MongoDB host address
+ * @property {string} name - Database name
+ */
 const getConnectionStatus = () => {
   return {
     isConnected,

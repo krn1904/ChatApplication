@@ -1,13 +1,33 @@
+/**
+ * User Controller
+ * 
+ * Handles user registration and authentication operations.
+ * Implements JWT-based authentication with bcrypt password hashing.
+ * 
+ * @module UserController/Users
+ */
 
 const User = require('../Tables/User')
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const config = require('../config');
 
+/**
+ * Register a new user
+ * 
+ * @async
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - Request body
+ * @param {string} req.body.email - User email (unique)
+ * @param {string} req.body.username - Username (unique)
+ * @param {string} req.body.password - Plain text password (will be hashed)
+ * @param {string} [req.body.name] - Display name (defaults to username)
+ * @param {Object} res - Express response object
+ * @returns {Object} JWT token and user data
+ */
 const CreateUser = async (req, res) => {
     try {
       const { email, password, name, username } = req.body;
-      console.log(req.body);
   
       // Add validation and error handling as needed
       if (!email || !password || !username) {
@@ -59,11 +79,22 @@ const CreateUser = async (req, res) => {
         }
       });
     } catch (error) {
-      console.error('Error creating user:', error);
+      console.error('[Auth] Error creating user:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
 
+  /**
+   * Authenticate user login
+   * 
+   * @async
+   * @param {Object} req - Express request object
+   * @param {Object} req.body - Request body
+   * @param {string} req.body.username - Username
+   * @param {string} req.body.password - Plain text password
+   * @param {Object} res - Express response object
+   * @returns {Object} JWT token and user data
+   */
   const LoginUser = async (req, res) => {
     try {
       const { username, password } = req.body;
@@ -111,7 +142,7 @@ const CreateUser = async (req, res) => {
         }
       });
     } catch (error) {
-      console.error('Error logging in:', error);
+      console.error('[Auth] Error logging in:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }

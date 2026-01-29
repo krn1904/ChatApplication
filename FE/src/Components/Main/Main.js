@@ -117,7 +117,7 @@ function Main() {
           });
         }
       } catch (error) {
-        console.error('Error processing message:', error);
+        // Handle message processing errors silently
       }
     };
 
