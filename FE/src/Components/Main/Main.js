@@ -36,16 +36,26 @@ function Main() {
     const handleMessage = (event) => {
       try {
         const receivedMessage = JSON.parse(event.data);
+        
+        // Handle room full error
         if (receivedMessage.method === 'room-full') {
           setRoomError(receivedMessage.message || 'Room is full. Please try another room.');
           return;
         }
+        
+        // Handle message history (loaded on room join)
+        if (receivedMessage.method === 'message-history') {
+          setChat(receivedMessage.messages || []);
+        }
+        
+        // Handle new incoming messages
         if (receivedMessage.method === 'new-message') {
           setChat(prevChat => {
             const messageExists = prevChat.some(msg => 
-              msg.message === receivedMessage.message && 
-              msg.author === receivedMessage.author &&
-              msg.timestamp === receivedMessage.timestamp
+              msg.messageId === receivedMessage.messageId ||
+              (msg.message === receivedMessage.message && 
+               msg.author === receivedMessage.author &&
+               msg.timestamp === receivedMessage.timestamp)
             );
             if (!messageExists) {
               return [...prevChat, receivedMessage];
@@ -54,6 +64,7 @@ function Main() {
           });
         }
         
+        // Handle room users update
         if (receivedMessage.method === 'room-users-update') {
           setRoomUsers(receivedMessage.users || []);
         }
