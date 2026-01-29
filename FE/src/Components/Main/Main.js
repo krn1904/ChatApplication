@@ -14,6 +14,7 @@ function Main() {
   const [roomError, setRoomError] = useState("");
   const [typingUsers, setTypingUsers] = useState([]);
   const typingTimeoutRef = useRef(null);
+  const messageBoxRef = useRef(null);
   const locationData = useLocation();
   const navigate = useNavigate();
   const { socket, isConnected, sendMessage } = useWebSocket();
@@ -23,6 +24,18 @@ function Main() {
       navigate('/', { replace: true });
     }
   }, [locationData.state, navigate]);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (messageBoxRef.current) {
+      setTimeout(() => {
+        messageBoxRef.current.scrollTo({
+          top: messageBoxRef.current.scrollHeight,
+          behavior: 'smooth'
+        });
+      }, 100);
+    }
+  }, [chat]);
 
   useEffect(() => {
     if (!locationData.state?.username || !locationData.state?.room_id || !socket || !isConnected) return;
@@ -180,13 +193,7 @@ function Main() {
         method: 'send-message',
         message: messageInput,
         room: room_id,
-        token,
-        timestamp: new Date().toLocaleTimeString('en-AU', { 
-          hour: '2-digit', 
-          minute: '2-digit',
-          timeZone: 'Australia/Melbourne',
-          hour12: true
-        })
+        token
       };
       // Don't add locally - let server broadcast it back
       sendMessage(message);
@@ -215,7 +222,7 @@ function Main() {
           users={usersWithStatus}
           currentUser={username}
         />
-        <div className="message-box-container">
+        <div className="message-box-container" ref={messageBoxRef}>
           {roomError && (
             <div className="no-messages">
               {roomError}
