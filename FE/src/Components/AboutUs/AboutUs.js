@@ -81,7 +81,7 @@ const AboutUs = () => {
             <div className="contact-content">
               <p>Have questions or suggestions? We'd love to hear from you!</p>
               <div className="contact-info">
-                <a href="mailto:support@chatapp.com" className="contact-button">Contact Us</a>
+                <a href="https://www.linkedin.com/in/karanssoni" target="_blank" rel="noopener noreferrer" className="contact-button">Contact Us</a>
               </div>
             </div>
           </section>
