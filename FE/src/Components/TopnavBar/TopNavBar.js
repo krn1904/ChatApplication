@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import './TopNavBar.css'; // Import your custom CSS
-import Slider from '../Slider/Slider';
-import { useWebSocket } from '../Hooks/useWebsocket';
+import './TopNavBar.css';
+// import Slider from '../Slider/Slider'; // Commented out - hamburger menu disabled
+import { useWebSocket } from '../Hooks/useWebsocket.jsx';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-const TopNavBar = ({ hideConnectionStatus = false, hideHamburger = false }) => {
-  const [isSliderOpen, setIsSliderOpen] = useState(false);
+const TopNavBar = ({ hideConnectionStatus = false, hideHamburger = false, showBackButton = false, onTogglePanel }) => {
+  // const [isSliderOpen, setIsSliderOpen] = useState(false); // Commented out - hamburger menu disabled
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
   const { isConnected } = useWebSocket();
   const location = useLocation();
@@ -22,23 +22,25 @@ const TopNavBar = ({ hideConnectionStatus = false, hideHamburger = false }) => {
     setTheme(prevTheme => prevTheme === 'dark' ? 'light' : 'dark');
   };
 
-  const toggleSlider = () => {
-    setIsSliderOpen(!isSliderOpen);
-  };
+  // const toggleSlider = () => { // Commented out - hamburger menu disabled
+  //   setIsSliderOpen(!isSliderOpen);
+  // };
 
   return (
     <>
       <nav className="top-navbar">
         <div className="container">
           <div className="left-section">
-            {isAboutPage && hasState ? (
+            {(showBackButton || (isAboutPage && hasState)) ? (
               <Link to="/chat" className="back-link" state={location.state}>
                 <div className="back-button">
                   <span className="back-arrow">←</span>
                   <span>Back to Chat</span>
                 </div>
               </Link>
-            ) : !hideHamburger && (
+            ) : null}
+            {/* Hamburger menu - commented out for now, will check later if needed
+            : !hideHamburger && (
               <div className="hamburger-menu" onClick={toggleSlider}>
                 <div className={`hamburger-icon ${isSliderOpen ? 'open' : ''}`}>
                   <span></span>
@@ -46,7 +48,7 @@ const TopNavBar = ({ hideConnectionStatus = false, hideHamburger = false }) => {
                   <span></span>
                 </div>
               </div>
-            )}
+            )} */}
             <div className="navbar-brand-container">
               <span className="navbar-brand">Chat App</span>
               {!hideConnectionStatus && (
@@ -58,7 +60,17 @@ const TopNavBar = ({ hideConnectionStatus = false, hideHamburger = false }) => {
             </div>
           </div>
           <div className="right-section">
-            <button className="theme-toggle" onClick={toggleTheme}>
+            {onTogglePanel && (
+              <button className="users-button" onClick={onTogglePanel} aria-label="Show users">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" width="20" height="20">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            )}
+            <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
               {theme === 'dark' ? (
                 <>
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
@@ -78,7 +90,7 @@ const TopNavBar = ({ hideConnectionStatus = false, hideHamburger = false }) => {
               <li className="nav-item">
                 <Link to="/about" className="nav-link" state={location.state}>About Us</Link>
               </li>
-              {!hideConnectionStatus && (
+              {!hideConnectionStatus ? (
                 <li className="nav-item">
                   <button 
                     className="logout-button" 
@@ -87,24 +99,25 @@ const TopNavBar = ({ hideConnectionStatus = false, hideHamburger = false }) => {
                     Logout
                   </button>
                 </li>
+              ) : (
+                <li className="nav-item">
+                  <Link to="/login" className="nav-link">Login</Link>
+                </li>
               )}
             </ul>
           </div>
         </div>
       </nav>
-      
-      {/* Overlay */}
+      {/* Slider component - commented out since hamburger menu is disabled
       {!hideHamburger && (
-        <div 
-          className={`slider-overlay ${isSliderOpen ? 'visible' : ''}`} 
-          onClick={() => setIsSliderOpen(false)}
-        />
-      )}
-      
-      {/* Slider component */}
-      {!hideHamburger && (
-        <Slider isOpen={isSliderOpen} onClose={() => setIsSliderOpen(false)} />
-      )}
+        <>
+          <Slider isOpen={isSliderOpen} onClose={() => setIsSliderOpen(false)} />
+          <div 
+            className={`slider-overlay ${isSliderOpen ? 'visible' : ''}`} 
+            onClick={() => setIsSliderOpen(false)}
+          />
+        </>
+      )} */}
     </>
   );
 };

@@ -17,7 +17,7 @@ const Slider = ({ isOpen, onClose }) => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(`${config.BaseURL}/api/users/room/${roomId}/users`);
+        const response = await fetch(`${config.BackendHTTP}/api/users/room/${roomId}/users`);
         const data = await response.json();
         
         if (!response.ok) {
@@ -26,7 +26,6 @@ const Slider = ({ isOpen, onClose }) => {
         
         setUsers(data.users || []);
       } catch (err) {
-        console.error('Error fetching room users:', err);
         setError(err.message || 'Failed to load users');
       } finally {
         setLoading(false);
@@ -70,4 +69,4 @@ const Slider = ({ isOpen, onClose }) => {
   );
 };
 
-export default Slider; 
+export default Slider;
