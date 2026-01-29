@@ -183,7 +183,8 @@ api.set("join-room", async (req, clients, websocketConnection) => {
                     formattedTime: new Date(msg.timestamp).toLocaleTimeString('en-AU', { 
                         hour: '2-digit', 
                         minute: '2-digit',
-                        timeZone: 'Australia/Melbourne' 
+                        timeZone: 'Australia/Melbourne',
+                        hour12: true
                     })
                 })),
                 count: messageHistory.length
@@ -228,7 +229,8 @@ api.set("get-messages", async (req) => {
             formattedTime: new Date(msg.timestamp).toLocaleTimeString('en-AU', { 
                 hour: '2-digit', 
                 minute: '2-digit',
-                timeZone: 'Australia/Melbourne' 
+                timeZone: 'Australia/Melbourne',
+                hour12: true
             })
         }));
     } catch (error) {
@@ -308,7 +310,8 @@ function sendMessageToRoom(roomId, userId, message, savedMessage = null) {
         formattedTime: (savedMessage?.timestamp || new Date()).toLocaleTimeString('en-AU', { 
             hour: '2-digit', 
             minute: '2-digit',
-            timeZone: 'Australia/Melbourne' 
+            timeZone: 'Australia/Melbourne',
+            hour12: true
         })
     };
 

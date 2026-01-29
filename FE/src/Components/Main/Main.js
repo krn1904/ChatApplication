@@ -98,7 +98,7 @@ function Main() {
             {
               author: 'system',
               message: `${receivedMessage.user} ${statusText} the room`,
-              timestamp: new Date().toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', timeZone: 'Australia/Melbourne' }),
+              timestamp: new Date().toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', timeZone: 'Australia/Melbourne', hour12: true }),
               system: true
             }
           ]));
@@ -184,7 +184,8 @@ function Main() {
         timestamp: new Date().toLocaleTimeString('en-AU', { 
           hour: '2-digit', 
           minute: '2-digit',
-          timeZone: 'Australia/Melbourne' 
+          timeZone: 'Australia/Melbourne',
+          hour12: true
         })
       };
       // Don't add locally - let server broadcast it back

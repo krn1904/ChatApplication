@@ -62,7 +62,8 @@ router.get('/:roomId', optionalAuth, async (req, res) => {
                 formattedTime: new Date(msg.timestamp).toLocaleTimeString('en-AU', { 
                     hour: '2-digit', 
                     minute: '2-digit',
-                    timeZone: 'Australia/Melbourne' 
+                    timeZone: 'Australia/Melbourne',
+                    hour12: true
                 })
             })),
             pagination: {
@@ -119,7 +120,8 @@ router.get('/:roomId/latest', optionalAuth, async (req, res) => {
                 formattedTime: new Date(msg.timestamp).toLocaleTimeString('en-AU', { 
                     hour: '2-digit', 
                     minute: '2-digit',
-                    timeZone: 'Australia/Melbourne' 
+                    timeZone: 'Australia/Melbourne',
+                    hour12: true
                 })
             })),
             count: messages.length
