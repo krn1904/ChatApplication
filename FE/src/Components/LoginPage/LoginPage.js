@@ -93,14 +93,19 @@ function LoginPage() {
           formData.username
         );
         
-        // Auto-login after signup
+        // Auto-login after signup - store token and navigate
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+        
+        // Show success and switch to login view
         setIsLogin(true);
         setError('');
         setFormData({
-          ...formData,
+          username: formData.username,
           email: '',
           password: '',
-          confirmPassword: ''
+          confirmPassword: '',
+          room_id: ''
         });
       }
     } catch (err) {

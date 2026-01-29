@@ -85,7 +85,7 @@ export const WebSocketProvider = ({ children }) => {
         reconnectAttemptsRef.current = 0;
         isConnectingRef.current = false;
         setSocket(ws);
-        
+        // Flush any queued messages
         try {
           while (messageQueueRef.current.length) {
             const msg = messageQueueRef.current.shift();
@@ -149,6 +149,7 @@ export const WebSocketProvider = ({ children }) => {
     if (socket && socket.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify(message));
     } else if (isConnectingRef.current || !isBackendReady) {
+      // Queue messages if still connecting or backend not ready
       messageQueueRef.current.push(message);
     }
   }, [socket, isBackendReady]);

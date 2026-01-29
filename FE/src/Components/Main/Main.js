@@ -98,7 +98,7 @@ function Main() {
             {
               author: 'system',
               message: `${receivedMessage.user} ${statusText} the room`,
-              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              timestamp: new Date().toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', timeZone: 'Australia/Melbourne' }),
               system: true
             }
           ]));
@@ -117,7 +117,7 @@ function Main() {
           });
         }
       } catch (error) {
-        // Handle message processing errors silently
+        console.error('Error processing message:', error);
       }
     };
 
@@ -181,9 +181,10 @@ function Main() {
         message: messageInput,
         room: room_id,
         token,
-        timestamp: new Date().toLocaleTimeString([], { 
+        timestamp: new Date().toLocaleTimeString('en-AU', { 
           hour: '2-digit', 
-          minute: '2-digit' 
+          minute: '2-digit',
+          timeZone: 'Australia/Melbourne' 
         })
       };
       // Don't add locally - let server broadcast it back

@@ -1,9 +1,3 @@
-/**
- * WebSocket Handler Module
- * Manages real-time communication, authentication, and room-based messaging
- * Features: JWT authentication, presence tracking, typing indicators, message persistence
- */
-
 const { WebSocket } = require('ws');
 const jwt = require('jsonwebtoken');
 const config = require('../config');
@@ -133,13 +127,17 @@ api.set("join-room", async (req, clients, websocketConnection) => {
         const userId = authUser.username;
         websocketConnection.user = authUser;
 
+        // If room doesn't exist, create a new one
         if (!rooms.has(roomId)) {
             rooms.set(roomId, new Set());
         }
 
         const roomUsers = rooms.get(roomId);
 
-        // Remove stale connection on reconnect/refresh
+        // Remove any existing connection for this user (handles refresh/reconnect)
+
+        // Remove old connection if user exists (on refresh, old WebSocket closes but new one connects before cleanup)
+        // Without this, user would have stale connection that can't receive/send messages
         roomUsers.forEach(user => {
             if (user.userId === userId) {
                 roomUsers.delete(user);
@@ -182,9 +180,10 @@ api.set("join-room", async (req, clients, websocketConnection) => {
                     author: msg.author,
                     message: msg.content,
                     timestamp: msg.timestamp,
-                    formattedTime: new Date(msg.timestamp).toLocaleTimeString([], { 
+                    formattedTime: new Date(msg.timestamp).toLocaleTimeString('en-AU', { 
                         hour: '2-digit', 
-                        minute: '2-digit' 
+                        minute: '2-digit',
+                        timeZone: 'Australia/Melbourne' 
                     })
                 })),
                 count: messageHistory.length
@@ -226,9 +225,10 @@ api.set("get-messages", async (req) => {
             author: msg.author,
             message: msg.content,
             timestamp: msg.timestamp,
-            formattedTime: new Date(msg.timestamp).toLocaleTimeString([], { 
+            formattedTime: new Date(msg.timestamp).toLocaleTimeString('en-AU', { 
                 hour: '2-digit', 
-                minute: '2-digit' 
+                minute: '2-digit',
+                timeZone: 'Australia/Melbourne' 
             })
         }));
     } catch (error) {
@@ -305,9 +305,10 @@ function sendMessageToRoom(roomId, userId, message, savedMessage = null) {
         message: message,
         messageId: savedMessage?.messageId || null,
         timestamp: savedMessage?.timestamp || new Date(),
-        formattedTime: (savedMessage?.timestamp || new Date()).toLocaleTimeString([], { 
+        formattedTime: (savedMessage?.timestamp || new Date()).toLocaleTimeString('en-AU', { 
             hour: '2-digit', 
-            minute: '2-digit' 
+            minute: '2-digit',
+            timeZone: 'Australia/Melbourne' 
         })
     };
 
@@ -321,7 +322,9 @@ function sendMessageToRoom(roomId, userId, message, savedMessage = null) {
 
 /**
  * Broadcasts updated user list to all users in a room
- * @param {string} roomId - Room ID to broadcast to
+ * Called when: user joins, user leaves, or connection closes
+ * 
+ * @param {string} roomId - The room ID to broadcast to
  */
 function broadcastRoomUsers(roomId) {
     if (!rooms.has(roomId)) return;
@@ -329,11 +332,12 @@ function broadcastRoomUsers(roomId) {
     const roomUsers = rooms.get(roomId);
     const usersList = Array.from(roomUsers).map(user => user.userId);
 
+    // Send to all clients in the room
     roomUsers.forEach(user => {
         if (user.websocketConnection && user.websocketConnection.readyState === WebSocket.OPEN) {
             user.websocketConnection.send(JSON.stringify({
                 method: 'room-users-update',
-                roomId,
+                roomId: roomId,
                 users: usersList
             }));
         }
@@ -354,7 +358,7 @@ function broadcastPresence(roomId, userId, status) {
         if (user.websocketConnection && user.websocketConnection.readyState === WebSocket.OPEN) {
             user.websocketConnection.send(JSON.stringify({
                 method: 'user-presence',
-                roomId,
+                roomId: roomId,
                 user: userId,
                 status
             }));
@@ -377,7 +381,7 @@ function broadcastTyping(roomId, userId, isTyping) {
         if (user.websocketConnection && user.websocketConnection.readyState === WebSocket.OPEN) {
             user.websocketConnection.send(JSON.stringify({
                 method: 'typing',
-                roomId,
+                roomId: roomId,
                 user: userId,
                 isTyping
             }));

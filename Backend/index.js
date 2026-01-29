@@ -97,15 +97,12 @@ const initConnection = (ws) => {
   })
 
   ws.on('close', () => { 
-    console.log("connection closed");
-    
     // Remove user from all rooms when connection closes
     const { rooms, broadcastPresence } = require('./Websocket/ws');
     rooms.forEach((roomUsers, roomId) => {
       roomUsers.forEach(user => {
         if (user.websocketConnection === ws) {
           roomUsers.delete(user);
-          console.log(`🚪 User ${user.userId} removed from room ${roomId} on disconnect`);
           broadcastPresence(roomId, user.userId, 'offline');
           
           // Broadcast updated users list after removal

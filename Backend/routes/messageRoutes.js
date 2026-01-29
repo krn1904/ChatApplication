@@ -59,9 +59,10 @@ router.get('/:roomId', optionalAuth, async (req, res) => {
                 timestamp: msg.timestamp,
                 isEdited: msg.isEdited,
                 editedAt: msg.editedAt,
-                formattedTime: new Date(msg.timestamp).toLocaleTimeString([], { 
+                formattedTime: new Date(msg.timestamp).toLocaleTimeString('en-AU', { 
                     hour: '2-digit', 
-                    minute: '2-digit' 
+                    minute: '2-digit',
+                    timeZone: 'Australia/Melbourne' 
                 })
             })),
             pagination: {
@@ -115,9 +116,10 @@ router.get('/:roomId/latest', optionalAuth, async (req, res) => {
                 timestamp: msg.timestamp,
                 isEdited: msg.isEdited,
                 editedAt: msg.editedAt,
-                formattedTime: new Date(msg.timestamp).toLocaleTimeString([], { 
+                formattedTime: new Date(msg.timestamp).toLocaleTimeString('en-AU', { 
                     hour: '2-digit', 
-                    minute: '2-digit' 
+                    minute: '2-digit',
+                    timeZone: 'Australia/Melbourne' 
                 })
             })),
             count: messages.length
