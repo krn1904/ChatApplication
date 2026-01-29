@@ -4,6 +4,7 @@ const User = require('../Tables/User.js');
 
 const api = new Map(); // Maps method names to handler functions
 const rooms = new Map(); // Maps roomId -> Set of {userId, websocketConnection}
+const MAX_USERS_PER_ROOM = 100;
 
  const handleMessage = async (req, clients, ws) => {
 
@@ -78,6 +79,20 @@ api.set("join-room", async (req, clients, websocketConnection) => {
                 roomUsers.delete(user);
             }
         });
+
+        // Enforce max users per room
+        if (roomUsers.size >= MAX_USERS_PER_ROOM) {
+            console.warn(`⚠️ Room ${roomId} is full (${MAX_USERS_PER_ROOM} users). Rejecting ${userId}`);
+            if (websocketConnection.readyState === WebSocket.OPEN) {
+                websocketConnection.send(JSON.stringify({
+                    method: 'room-full',
+                    roomId: roomId,
+                    maxUsers: MAX_USERS_PER_ROOM,
+                    message: `Room ${roomId} is full. Max users: ${MAX_USERS_PER_ROOM}.`
+                }));
+            }
+            return;
+        }
 
         // Add the user with their new websocket connection
         roomUsers.add({ userId, websocketConnection });

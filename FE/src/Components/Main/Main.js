@@ -10,6 +10,7 @@ function Main() {
   const [chat, setChat] = useState([]);
   const [roomUsers, setRoomUsers] = useState([]);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [roomError, setRoomError] = useState("");
   const locationData = useLocation();
   const navigate = useNavigate();
   const { socket, isConnected, sendMessage } = useWebSocket();
@@ -35,6 +36,10 @@ function Main() {
     const handleMessage = (event) => {
       try {
         const receivedMessage = JSON.parse(event.data);
+        if (receivedMessage.method === 'room-full') {
+          setRoomError(receivedMessage.message || 'Room is full. Please try another room.');
+          return;
+        }
         if (receivedMessage.method === 'new-message') {
           setChat(prevChat => {
             const messageExists = prevChat.some(msg => 
@@ -115,6 +120,11 @@ function Main() {
           currentUser={username}
         />
         <div className="message-box-container">
+          {roomError && (
+            <div className="no-messages">
+              {roomError}
+            </div>
+          )}
           <div className="message-box">
             {chat.length === 0 ? (
               <div className="no-messages">No messages yet</div>
@@ -142,11 +152,11 @@ function Main() {
               value={messageInput}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              disabled={!isConnected}
+              disabled={!isConnected || !!roomError}
             />
             <button 
               onClick={handleSubmit}
-              disabled={!isConnected}
+              disabled={!isConnected || !!roomError}
             >
               Send
             </button>
