@@ -18,10 +18,11 @@ function UsersList({ isOpen, onClose, users, currentUser }) {
           ) : (
             users.map((user, index) => (
               <div key={index} className="panel-user-item">
-                <span className="user-initial">{user.charAt(0).toUpperCase()}</span>
+                <span className="user-initial">{user.name.charAt(0).toUpperCase()}</span>
                 <span className="user-name">
-                  {user === currentUser ? `${user} (You)` : user}
+                  {user.name === currentUser ? `${user.name} (You)` : user.name}
                 </span>
+                <span className={`user-status ${user.status}`}></span>
               </div>
             ))
           )}
