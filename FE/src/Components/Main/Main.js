@@ -235,7 +235,7 @@ function Main() {
                   <div className="message-content">
                     <div className="message-text">{message.message}</div>
                   </div>
-                    <span className="message-time">{message.timestamp}</span>
+                    <span className="message-time">{message.formattedTime || message.timestamp}</span>
                 </div>
               ))
             )}
