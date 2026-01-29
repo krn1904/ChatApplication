@@ -1,10 +1,37 @@
 const { WebSocket } = require('ws');
+const jwt = require('jsonwebtoken');
+const config = require('../config');
 const Message = require('../Tables/Message.js');
 const User = require('../Tables/User.js');
 
 const api = new Map(); // Maps method names to handler functions
 const rooms = new Map(); // Maps roomId -> Set of {userId, websocketConnection}
 const MAX_USERS_PER_ROOM = 100;
+
+function verifySocketToken(token) {
+    if (!token) {
+        return null;
+    }
+    try {
+        const decoded = jwt.verify(token, config.JWT_SECRET);
+        return {
+            userId: decoded.userId,
+            username: decoded.username,
+            email: decoded.email
+        };
+    } catch (error) {
+        return null;
+    }
+}
+
+function sendAuthError(websocketConnection, message) {
+    if (websocketConnection.readyState === WebSocket.OPEN) {
+        websocketConnection.send(JSON.stringify({
+            method: 'auth-error',
+            message: message || 'Authentication failed. Please login again.'
+        }));
+    }
+}
 
  const handleMessage = async (req, clients, ws) => {
 
@@ -23,24 +50,30 @@ const MAX_USERS_PER_ROOM = 100;
 api.set("send-message", async (req, clients, ws) => {
     try {
         const content = req.message;
-        const author = req.author;
         const roomId = req.room;
+        const token = req.token;
+        const authUser = verifySocketToken(token) || ws.user;
 
-        if (!content || !author || !roomId) {
+        if (!authUser) {
+            sendAuthError(ws, 'Authentication required to send messages.');
+            return;
+        }
+
+        if (!content || !roomId) {
             console.error('Missing required fields: message, author, or room');
             return;
         }
 
         // Get authorId from username
-        const user = await User.findOne({ username: author });
+        const user = await User.findOne({ username: authUser.username });
         if (!user) {
-            console.error(`User not found: ${author}`);
+            console.error(`User not found: ${authUser.username}`);
             return;
         }
 
         // Save message to database
         const newMessage = new Message({
-            author: author,
+            author: authUser.username,
             authorId: user.userId,
             content: content,
             roomId: roomId
@@ -49,7 +82,7 @@ api.set("send-message", async (req, clients, ws) => {
         const savedMessage = await newMessage.save();
 
         // Broadcast message to room
-        sendMessageToRoom(author, content, clients, ws, savedMessage);
+        sendMessageToRoom(roomId, authUser.username, content, savedMessage);
 
         return savedMessage;
     } catch (error) {
@@ -60,7 +93,16 @@ api.set("send-message", async (req, clients, ws) => {
 api.set("join-room", async (req, clients, websocketConnection) => {
     try {
         const roomId = req.room;
-        const userId = req.username || req.user;
+        const token = req.token;
+        const authUser = verifySocketToken(token);
+
+        if (!authUser) {
+            sendAuthError(websocketConnection, 'Authentication required to join rooms.');
+            return;
+        }
+
+        const userId = authUser.username;
+        websocketConnection.user = authUser;
 
         // If room doesn't exist, create a new one
         if (!rooms.has(roomId)) {
@@ -126,6 +168,9 @@ api.set("join-room", async (req, clients, websocketConnection) => {
 
         // Broadcast updated users list to all users in the room
         broadcastRoomUsers(roomId);
+
+        // Broadcast presence update
+        broadcastPresence(roomId, userId, 'online');
     } catch (error) {
         console.error('Error in join-room:', error);
     }
@@ -169,7 +214,9 @@ api.set("get-messages", async (req) => {
 
 api.set("leave-room", async (req, clients, websocketConnection) => {
     let roomId = req.room;
-    let userId = req.username;
+    const token = req.token;
+    const authUser = verifySocketToken(token) || websocketConnection.user;
+    let userId = authUser?.username || req.username;
 
     if (rooms.has(roomId)) {
         const roomUsers = rooms.get(roomId);
@@ -182,26 +229,54 @@ api.set("leave-room", async (req, clients, websocketConnection) => {
         
         // Broadcast updated users list to remaining users in the room
         broadcastRoomUsers(roomId);
+
+        // Broadcast presence update
+        broadcastPresence(roomId, userId, 'offline');
     }
 });
 
-// Function to send a message to all users in a room
-function sendMessageToRoom(userId, message, clients, ws, savedMessage = null) {
+api.set("typing", async (req, clients, websocketConnection) => {
+    const roomId = req.room;
+    const token = req.token;
+    const authUser = verifySocketToken(token) || websocketConnection.user;
+    if (!authUser || !roomId) {
+        return;
+    }
 
-    clients.forEach(function each(client) {
-          if (client.readyState === WebSocket.OPEN) {
-            const MsgObj = {
-                method: 'new-message',
-                author: userId,
-                message: message,
-                messageId: savedMessage?.messageId || null,
-                timestamp: savedMessage?.timestamp || new Date(),
-                formattedTime: (savedMessage?.timestamp || new Date()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-              };
-            client.send(JSON.stringify(MsgObj));
-          }
-        })
-    
+    broadcastTyping(roomId, authUser.username, true);
+});
+
+api.set("stop-typing", async (req, clients, websocketConnection) => {
+    const roomId = req.room;
+    const token = req.token;
+    const authUser = verifySocketToken(token) || websocketConnection.user;
+    if (!authUser || !roomId) {
+        return;
+    }
+
+    broadcastTyping(roomId, authUser.username, false);
+});
+
+// Function to send a message to all users in a room
+function sendMessageToRoom(roomId, userId, message, savedMessage = null) {
+        if (!rooms.has(roomId)) return;
+
+        const roomUsers = rooms.get(roomId);
+
+        roomUsers.forEach(user => {
+                const client = user.websocketConnection;
+                if (client.readyState === WebSocket.OPEN) {
+                        const MsgObj = {
+                                method: 'new-message',
+                                author: userId,
+                                message: message,
+                                messageId: savedMessage?.messageId || null,
+                                timestamp: savedMessage?.timestamp || new Date(),
+                                formattedTime: (savedMessage?.timestamp || new Date()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        };
+                        client.send(JSON.stringify(MsgObj));
+                }
+        });
 }
 
 /**
@@ -228,8 +303,42 @@ function broadcastRoomUsers(roomId) {
     });
 }
 
+function broadcastPresence(roomId, userId, status) {
+    if (!rooms.has(roomId)) return;
+
+    const roomUsers = rooms.get(roomId);
+    roomUsers.forEach(user => {
+        if (user.websocketConnection && user.websocketConnection.readyState === WebSocket.OPEN) {
+            user.websocketConnection.send(JSON.stringify({
+                method: 'user-presence',
+                roomId: roomId,
+                user: userId,
+                status
+            }));
+        }
+    });
+}
+
+function broadcastTyping(roomId, userId, isTyping) {
+    if (!rooms.has(roomId)) return;
+
+    const roomUsers = rooms.get(roomId);
+    roomUsers.forEach(user => {
+        if (user.userId === userId) return;
+        if (user.websocketConnection && user.websocketConnection.readyState === WebSocket.OPEN) {
+            user.websocketConnection.send(JSON.stringify({
+                method: 'typing',
+                roomId: roomId,
+                user: userId,
+                isTyping
+            }));
+        }
+    });
+}
+
 module.exports = {
     handleMessage,
     api, // if you need to use 'api' in another file
     rooms, // Export rooms Map for REST API access
+    broadcastPresence
 };

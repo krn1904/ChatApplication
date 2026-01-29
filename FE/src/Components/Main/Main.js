@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./Main.css";
 import TopNavBar from "../TopnavBar/TopNavBar";
 import UsersList from "../UsersList/UsersList";
@@ -9,8 +9,11 @@ function Main() {
   const [messageInput, setMessageInput] = useState("");
   const [chat, setChat] = useState([]);
   const [roomUsers, setRoomUsers] = useState([]);
+  const [onlineUsers, setOnlineUsers] = useState(new Set());
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [roomError, setRoomError] = useState("");
+  const [typingUsers, setTypingUsers] = useState([]);
+  const typingTimeoutRef = useRef(null);
   const locationData = useLocation();
   const navigate = useNavigate();
   const { socket, isConnected, sendMessage } = useWebSocket();
@@ -26,10 +29,13 @@ function Main() {
 
     const { username, room_id } = locationData.state;
 
+    const token = localStorage.getItem('token');
+
     const joinMessage = {
       method: 'join-room',
       username,
-      room: room_id
+      room: room_id,
+      token
     };
     sendMessage(joinMessage);
 
@@ -40,6 +46,11 @@ function Main() {
         // Handle room full error
         if (receivedMessage.method === 'room-full') {
           setRoomError(receivedMessage.message || 'Room is full. Please try another room.');
+          return;
+        }
+
+        if (receivedMessage.method === 'auth-error') {
+          setRoomError(receivedMessage.message || 'Authentication failed. Please login again.');
           return;
         }
         
@@ -66,7 +77,44 @@ function Main() {
         
         // Handle room users update
         if (receivedMessage.method === 'room-users-update') {
-          setRoomUsers(receivedMessage.users || []);
+          const users = receivedMessage.users || [];
+          setRoomUsers(users);
+          setOnlineUsers(new Set(users));
+        }
+
+        if (receivedMessage.method === 'user-presence') {
+          const statusText = receivedMessage.status === 'online' ? 'joined' : 'left';
+          setOnlineUsers(prev => {
+            const next = new Set(prev);
+            if (receivedMessage.status === 'online') {
+              next.add(receivedMessage.user);
+            } else {
+              next.delete(receivedMessage.user);
+            }
+            return next;
+          });
+          setChat(prevChat => ([
+            ...prevChat,
+            {
+              author: 'system',
+              message: `${receivedMessage.user} ${statusText} the room`,
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              system: true
+            }
+          ]));
+        }
+
+        if (receivedMessage.method === 'typing') {
+          setTypingUsers(prev => {
+            const already = prev.includes(receivedMessage.user);
+            if (receivedMessage.isTyping && !already) {
+              return [...prev, receivedMessage.user];
+            }
+            if (!receivedMessage.isTyping && already) {
+              return prev.filter(u => u !== receivedMessage.user);
+            }
+            return prev;
+          });
         }
       } catch (error) {
         console.error('Error processing message:', error);
@@ -77,10 +125,14 @@ function Main() {
 
     return () => {
       socket.removeEventListener('message', handleMessage);
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
       const leaveMessage = {
         method: 'leave-room',
         username,
-        room: room_id
+        room: room_id,
+        token
       };
       sendMessage(leaveMessage);
     };
@@ -91,18 +143,44 @@ function Main() {
   }
 
   const { username, room_id } = locationData.state;
+  const usersWithStatus = roomUsers.map(user => ({
+    name: user,
+    status: onlineUsers.has(user) ? 'online' : 'offline'
+  }));
 
   const handleInputChange = (event) => {
-    setMessageInput(event.target.value);
+    const value = event.target.value;
+    setMessageInput(value);
+
+    if (!isConnected) return;
+
+    const token = localStorage.getItem('token');
+    sendMessage({
+      method: 'typing',
+      room: room_id,
+      token
+    });
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    typingTimeoutRef.current = setTimeout(() => {
+      sendMessage({
+        method: 'stop-typing',
+        room: room_id,
+        token
+      });
+    }, 1500);
   };
 
   const handleSubmit = () => {
     if (messageInput.trim() !== "" && isConnected) {
+      const token = localStorage.getItem('token');
       const message = {
         method: 'send-message',
-        author: username,
         message: messageInput,
         room: room_id,
+        token,
         timestamp: new Date().toLocaleTimeString([], { 
           hour: '2-digit', 
           minute: '2-digit' 
@@ -111,6 +189,11 @@ function Main() {
       // Don't add locally - let server broadcast it back
       sendMessage(message);
       setMessageInput("");
+      sendMessage({
+        method: 'stop-typing',
+        room: room_id,
+        token
+      });
     }
   };
 
@@ -127,7 +210,7 @@ function Main() {
         <UsersList 
           isOpen={isPanelOpen} 
           onClose={() => setIsPanelOpen(false)}
-          users={roomUsers}
+          users={usersWithStatus}
           currentUser={username}
         />
         <div className="message-box-container">
@@ -143,9 +226,9 @@ function Main() {
               chat.map((message, index) => (
                 <div 
                   key={`${message.author}-${message.timestamp}-${index}`}
-                  className={`message-bubble ${message.author === username ? 'sent' : 'received'}`}
+                  className={`message-bubble ${message.system ? 'system' : (message.author === username ? 'sent' : 'received')}`}
                 >
-                    {message.author !== username && (
+                    {message.author !== username && !message.system && (
                       <span className="message-author">{message.author}</span>
                     )}
                   <div className="message-content">
@@ -156,6 +239,11 @@ function Main() {
               ))
             )}
           </div>
+          {typingUsers.length > 0 && (
+            <div className="no-messages">
+              {typingUsers.join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
+            </div>
+          )}
           <div className="input-box">
             <input
               type="text"
