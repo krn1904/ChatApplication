@@ -47,8 +47,6 @@ function LoginPage() {
           localStorage.setItem('token', response.token);
           localStorage.setItem('user', JSON.stringify(response.user));
           
-          console.log('Login successful:', response);
-          
           // Navigate to chat with authenticated user
           navigate("/chat", { 
             state: { 
@@ -94,17 +92,20 @@ function LoginPage() {
           formData.password,
           formData.username
         );
-
-        console.log('Registration successful:', response);
         
-        // Auto-login after signup
+        // Auto-login after signup - store token and navigate
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+        
+        // Show success and switch to login view
         setIsLogin(true);
         setError('');
         setFormData({
-          ...formData,
+          username: formData.username,
           email: '',
           password: '',
-          confirmPassword: ''
+          confirmPassword: '',
+          room_id: ''
         });
       }
     } catch (err) {

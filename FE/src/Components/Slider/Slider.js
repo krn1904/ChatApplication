@@ -26,7 +26,6 @@ const Slider = ({ isOpen, onClose }) => {
         
         setUsers(data.users || []);
       } catch (err) {
-        console.error('Error fetching room users:', err);
         setError(err.message || 'Failed to load users');
       } finally {
         setLoading(false);

@@ -32,7 +32,6 @@ class API {
         
         return responseData;
       } catch (error) {
-        console.error('API Request Error:', error);
         throw error;
       }
     }

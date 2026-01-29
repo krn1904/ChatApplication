@@ -59,9 +59,11 @@ router.get('/:roomId', optionalAuth, async (req, res) => {
                 timestamp: msg.timestamp,
                 isEdited: msg.isEdited,
                 editedAt: msg.editedAt,
-                formattedTime: new Date(msg.timestamp).toLocaleTimeString([], { 
+                formattedTime: new Date(msg.timestamp).toLocaleTimeString('en-AU', { 
                     hour: '2-digit', 
-                    minute: '2-digit' 
+                    minute: '2-digit',
+                    timeZone: 'Australia/Melbourne',
+                    hour12: true
                 })
             })),
             pagination: {
@@ -74,7 +76,7 @@ router.get('/:roomId', optionalAuth, async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Error fetching messages:', error);
+        console.error('[API] Error fetching messages:', error);
         res.status(500).json({ 
             success: false,
             error: 'Failed to fetch messages',
@@ -115,15 +117,17 @@ router.get('/:roomId/latest', optionalAuth, async (req, res) => {
                 timestamp: msg.timestamp,
                 isEdited: msg.isEdited,
                 editedAt: msg.editedAt,
-                formattedTime: new Date(msg.timestamp).toLocaleTimeString([], { 
+                formattedTime: new Date(msg.timestamp).toLocaleTimeString('en-AU', { 
                     hour: '2-digit', 
-                    minute: '2-digit' 
+                    minute: '2-digit',
+                    timeZone: 'Australia/Melbourne',
+                    hour12: true
                 })
             })),
             count: messages.length
         });
     } catch (error) {
-        console.error('Error fetching latest messages:', error);
+        console.error('[API] Error fetching latest messages:', error);
         res.status(500).json({ 
             success: false,
             error: 'Failed to fetch latest messages',
@@ -150,7 +154,7 @@ router.get('/:roomId/count', optionalAuth, async (req, res) => {
             count
         });
     } catch (error) {
-        console.error('Error counting messages:', error);
+        console.error('[API] Error counting messages:', error);
         res.status(500).json({ 
             success: false,
             error: 'Failed to count messages',
@@ -189,7 +193,7 @@ router.post('/', authMiddleware, async (req, res) => {
             message: savedMessage
         });
     } catch (error) {
-        console.error('Error creating message:', error);
+        console.error('[API] Error creating message:', error);
         res.status(500).json({ 
             success: false,
             error: 'Failed to create message',

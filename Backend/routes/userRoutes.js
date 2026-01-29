@@ -17,7 +17,6 @@ router.get('/room/:roomId/users', (req, res) => {
         
         const room = rooms.get(roomId);
         if (!room) {
-            console.log('Room not found:', roomId);
             return res.status(404).json({ 
                 message: 'Room not found',
                 users: [] 
@@ -30,10 +29,9 @@ router.get('/room/:roomId/users', (req, res) => {
             id: user.userId
         }));
 
-        console.log('Users in room:', users);
         res.json({ users });
     } catch (error) {
-        console.error('Error getting room users:', error);
+        console.error('[API] Error getting room users:', error);
         res.status(500).json({ 
             message: 'Internal server error',
             users: [] 
