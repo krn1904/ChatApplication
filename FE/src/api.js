@@ -36,12 +36,11 @@ class API {
       }
     }
   
-    async register(username, email, password, name) {
+    async register(username, email, password) {
       return await this.sendRequest('/api/auth/register', 'POST', { 
         username, 
         email, 
-        password, 
-        name 
+        password
       });
     }
 

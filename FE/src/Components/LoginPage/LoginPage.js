@@ -89,8 +89,7 @@ function LoginPage() {
         const response = await api.register(
           formData.username,
           formData.email,
-          formData.password,
-          formData.username
+          formData.password
         );
         
         // Auto-login after signup - store token and navigate
