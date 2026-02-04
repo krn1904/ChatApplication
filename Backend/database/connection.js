@@ -92,15 +92,6 @@ const connectDB = async () => {
   }
 };
 
-/**
- * Get current MongoDB connection status
- * 
- * @returns {Object} Connection status object
- * @property {boolean} isConnected - Whether connection is established
- * @property {number} readyState - Mongoose connection state (0-3)
- * @property {string} host - MongoDB host address
- * @property {string} name - Database name
- */
 const getConnectionStatus = () => {
   return {
     isConnected,

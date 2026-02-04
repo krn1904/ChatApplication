@@ -17,7 +17,6 @@ const mongoose = require('mongoose');
  * @property {string} email - Unique email address (indexed)
  * @property {string} password - Plain text password (backup/recovery only)
  * @property {string} hashedPassword - Bcrypt hashed password for authentication
- * @property {string} name - Display name (optional)
  * @property {Date} lastLogin - Last successful login timestamp
  * @property {boolean} isActive - Account active status (default: true)
  */
@@ -44,9 +43,6 @@ const userSchema = new mongoose.Schema({
   hashedPassword: {
     type: String,
     required: true,
-  },
-  name : {
-    type : String
   },
   lastLogin: {
     type: Date,
