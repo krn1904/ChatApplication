@@ -5,6 +5,68 @@ import UsersList from "../UsersList/UsersList";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useWebSocket } from "../Hooks/useWebsocket.jsx";
 
+// Utility function to format date for display
+const formatDate = (timestamp) => {
+  const date = new Date(timestamp);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  
+  // Reset time to compare only dates
+  today.setHours(0, 0, 0, 0);
+  yesterday.setHours(0, 0, 0, 0);
+  const messageDate = new Date(date);
+  messageDate.setHours(0, 0, 0, 0);
+  
+  if (messageDate.getTime() === today.getTime()) {
+    return 'Today';
+  } else if (messageDate.getTime() === yesterday.getTime()) {
+    return 'Yesterday';
+  } else {
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  }
+};
+
+// Utility function to get date key for grouping
+const getDateKey = (timestamp) => {
+  const date = new Date(timestamp);
+  return date.toDateString();
+};
+
+// Function to group messages by date
+const groupMessagesByDate = (messages) => {
+  const grouped = [];
+  let currentDateKey = null;
+  
+  messages.forEach((message, index) => {
+    const messageTimestamp = message.timestamp || new Date();
+    const dateKey = getDateKey(messageTimestamp);
+    
+    // Add date separator if date changes
+    if (dateKey !== currentDateKey) {
+      grouped.push({
+        type: 'date-separator',
+        date: formatDate(messageTimestamp),
+        key: `date-${dateKey}-${index}`
+      });
+      currentDateKey = dateKey;
+    }
+    
+    // Add the message
+    grouped.push({
+      type: 'message',
+      data: message,
+      key: `${message.messageId || message.author}-${message.timestamp}-${index}`
+    });
+  });
+  
+  return grouped;
+};
+
 function Main() {
   const [messageInput, setMessageInput] = useState("");
   const [chat, setChat] = useState([]);
@@ -97,6 +159,7 @@ function Main() {
 
         if (receivedMessage.method === 'user-presence') {
           const statusText = receivedMessage.status === 'online' ? 'joined' : 'left';
+          const now = new Date();
           setOnlineUsers(prev => {
             const next = new Set(prev);
             if (receivedMessage.status === 'online') {
@@ -111,7 +174,8 @@ function Main() {
             {
               author: 'system',
               message: `${receivedMessage.user} ${statusText} the room`,
-              timestamp: new Date().toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', timeZone: 'Australia/Melbourne', hour12: true }),
+              timestamp: now.toISOString(),
+              formattedTime: now.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', timeZone: 'Australia/Melbourne', hour12: true }),
               system: true
             }
           ]));
@@ -232,20 +296,33 @@ function Main() {
             {chat.length === 0 ? (
               <div className="no-messages">No messages yet</div>
             ) : (
-              chat.map((message, index) => (
-                <div 
-                  key={`${message.author}-${message.timestamp}-${index}`}
-                  className={`message-bubble ${message.system ? 'system' : (message.author === username ? 'sent' : 'received')}`}
-                >
+              groupMessagesByDate(chat).map((item) => {
+                if (item.type === 'date-separator') {
+                  return (
+                    <div key={item.key} className="date-separator">
+                      <span className="date-separator-line"></span>
+                      <span className="date-separator-text">{item.date}</span>
+                      <span className="date-separator-line"></span>
+                    </div>
+                  );
+                }
+                
+                const message = item.data;
+                return (
+                  <div 
+                    key={item.key}
+                    className={`message-bubble ${message.system ? 'system' : (message.author === username ? 'sent' : 'received')}`}
+                  >
                     {message.author !== username && !message.system && (
                       <span className="message-author">{message.author}</span>
                     )}
-                  <div className="message-content">
-                    <div className="message-text">{message.message}</div>
-                  </div>
+                    <div className="message-content">
+                      <div className="message-text">{message.message}</div>
+                    </div>
                     <span className="message-time">{message.formattedTime || message.timestamp}</span>
-                </div>
-              ))
+                  </div>
+                );
+              })
             )}
           </div>
           {typingUsers.length > 0 && (
