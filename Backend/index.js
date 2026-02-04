@@ -73,14 +73,6 @@ app.get('/', (req, res) => {
 app.post('/api/auth/register', CreateUser);
 app.post('/api/auth/login', LoginUser);
 
-// Example: Get current user profile (protected)
-app.get('/api/auth/me', authMiddleware, (req, res) => {
-  res.json({
-    message: 'Authenticated user',
-    user: req.user
-  });
-});
-
 wss.on("connection",(ws) => initConnection(ws))
 
 let clients = [];

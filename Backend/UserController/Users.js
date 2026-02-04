@@ -21,13 +21,12 @@ const config = require('../config');
  * @param {string} req.body.email - User email (unique)
  * @param {string} req.body.username - Username (unique)
  * @param {string} req.body.password - Plain text password (will be hashed)
- * @param {string} [req.body.name] - Display name (defaults to username)
  * @param {Object} res - Express response object
  * @returns {Object} JWT token and user data
  */
 const CreateUser = async (req, res) => {
     try {
-      const { email, password, name, username } = req.body;
+      const { email, password, username } = req.body;
   
       // Add validation and error handling as needed
       if (!email || !password || !username) {
@@ -50,7 +49,6 @@ const CreateUser = async (req, res) => {
         email,
         password, // Kept for backup/recovery purposes
         hashedPassword, // Encrypted password for authentication
-        name: name || username,
         username,
         userId
       });
@@ -74,8 +72,7 @@ const CreateUser = async (req, res) => {
         user: {
           userId: newUser.userId,
           username: newUser.username,
-          email: newUser.email,
-          name: newUser.name
+          email: newUser.email
         }
       });
     } catch (error) {
@@ -137,8 +134,7 @@ const CreateUser = async (req, res) => {
         user: {
           userId: user.userId,
           username: user.username,
-          email: user.email,
-          name: user.name
+          email: user.email
         }
       });
     } catch (error) {
